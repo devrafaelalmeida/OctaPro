@@ -253,5 +253,11 @@ namespace OctaPro.Services
 
             return actions;
         }
+
+        public Task<IEnumerable<SelectOptionResponse>> searchProcessAsync(string searchTerm)
+        {
+            var processes = JudicialProcess.forSelect(_context, searchTerm);
+            return Task.FromResult(processes.AsEnumerable());
+        }
     }
 }

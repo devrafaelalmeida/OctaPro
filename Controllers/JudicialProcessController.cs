@@ -68,5 +68,12 @@ namespace OctaPro.Controllers
         {
             return Ok(await _service.GetActionsAsync(natureId));
         }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<SelectOptionResponse>>> SearchProcess([FromQuery] string searchTerm)
+        {
+            var processes = await _service.searchProcessAsync(searchTerm);
+            return Ok(processes);
+        }
     }
 }

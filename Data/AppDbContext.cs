@@ -19,7 +19,7 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
     }
 
     public virtual DbSet<Cache> Caches { get; set; }
-
+    
     public virtual DbSet<CacheLock> CacheLocks { get; set; }
 
     public virtual DbSet<Client> Clients { get; set; }

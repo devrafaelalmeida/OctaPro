@@ -20,10 +20,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200")
+            // .WithOrigins("http://localhost:5173", "http://localhost:5174" )
+            .AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -56,8 +57,8 @@ var app = builder.Build();
 // ─── Middleware Pipeline ─────────────────────────────────────
 app.UseSwaggerConfiguration();
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAngular");
+// app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

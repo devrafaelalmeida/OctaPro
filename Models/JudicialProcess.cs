@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using OctaPro.Data;
+using OctaPro.DTO.Response;
 
 namespace OctaPro.Models;
 
@@ -43,5 +45,18 @@ public partial class JudicialProcess
     {
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    public static List<SelectOptionResponse> forSelect(AppDbContext _context, string searchTerm)
+    {
+         var processes = _context.JudicialProcesses
+                .Where(p => p.ProcessNumber.Contains(searchTerm))
+                .Select(p => new SelectOptionResponse
+                {
+                    IdPublic = p.IdPublic,
+                    Text = p.ProcessNumber
+                })
+                .ToList();
+        return processes;
     }
 }

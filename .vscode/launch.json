@@ -37,6 +37,23 @@
             "request": "attach",
             "processName": "OctaPro",        // nome do executável sem extensão
             "preLaunchTask": "watch"         // dispara a task watch antes de anexar
+        },
+         // ↓ nova entrada para o Docker
+        {
+            "name": "🐳 Docker — Attach .NET",
+            "type": "coreclr",
+            "request": "attach",
+            "processName": "OctaPro",
+            "pipeTransport": {
+                "pipeProgram": "sh",
+                "pipeArgs": ["-c", "docker exec -i dev-env ${debuggerCommand}"],
+                "debuggerPath": "/vsdbg/vsdbg",
+                "pipeCwd": "${workspaceFolder}"
+            },
+            "sourceFileMap": {
+                "/app/backend": "${workspaceFolder}"
+            },
+            "justMyCode": false
         }
     ]
 }

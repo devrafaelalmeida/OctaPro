@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="OctaPro">
+  <defs>
+    <linearGradient id="octa-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a3055" />
+      <stop offset="100%" stop-color="#111f38" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="6" fill="#0a1525" />
+  <polygon
+    points="16,3 25.2,8 27.5,16 25.2,24 16,29 6.8,24 4.5,16 6.8,8"
+    fill="url(#octa-bg)"
+  />
+  <g fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="16" y1="10" x2="16" y2="21.5" />
+    <circle cx="16" cy="9.5" r="1" fill="#ffffff" stroke="none" />
+    <line x1="11.5" y1="12" x2="20.5" y2="12" />
+    <line x1="11.5" y1="12" x2="10" y2="15.5" />
+    <line x1="20.5" y1="12" x2="22" y2="15.5" />
+    <path d="M10 15.5 L8.5 17.5 L11.5 17.5 Z" fill="#ffffff" stroke="none" />
+    <path d="M22 15.5 L20.5 17.5 L23.5 17.5 Z" fill="#ffffff" stroke="none" />
+    <line x1="16" y1="21.5" x2="13.5" y2="23.5" />
+    <line x1="16" y1="21.5" x2="18.5" y2="23.5" />
+  </g>
+</svg>

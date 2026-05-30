@@ -1,5 +1,3 @@
-# version: '3.9'
-
 services:
   octapro-pg-container:
     image: postgres:15
@@ -10,29 +8,40 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: octapro_db
     ports:
-      - "5433:5432"
+      - "5437:5432"   # ← nova porta pra não conflitar com o Postgres existente
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   dev-env:
-    build: ./  # caminho do Dockerfile
+    build: ./
     container_name: dev-env
     depends_on:
-      - octapro-pg-container
+      octapro-pg-container:
+        condition: service_healthy   # aguarda o Postgres estar pronto de verdade
     ports:
-      - "5091:5091"   # .NET
-      - "4200:4200"   # Angular
+      - "5091:5091"   # .NET API
+      - "5173:5173"   # React dev server
     volumes:
       - "./:/app/backend"
-      - "./Frontend/processum-frontend:/app/frontend"
+      - "./Frontend/:/app/frontend"
+      - nuget_cache:/root/.nuget/packages   # cache dos pacotes NuGet entre rebuilds
+      - node_modules_cache:/app/frontend/node_modules
     environment:
-      DB_HOST: octapro-pg-container
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: octapro_db
+      ASPNETCORE_ENVIRONMENT: Development
+    # ↓ Obrigatório para o vsdbg funcionar (ptrace para attach de processo)
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
     tty: true
     stdin_open: true
 
 volumes:
-   postgres_data:
-
+  postgres_data:
+  nuget_cache:
+  node_modules_cache:
