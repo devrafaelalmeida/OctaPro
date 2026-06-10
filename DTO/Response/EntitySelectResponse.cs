@@ -7,7 +7,7 @@ namespace OctaPro.DTO.Response
 {
     public class EntitySelectResponse
     {
-        public Guid Id { get; set; }
+        public Guid IdPublic { get; set; }
         public string Text { get; set; } = null!;
     }
 }

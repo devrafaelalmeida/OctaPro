@@ -74,15 +74,15 @@ namespace OctaPro.Controllers
             return NoContent();
         }
 
-        [HttpGet("clients")]
-        public async Task<ActionResult<IEnumerable<EntitySelectResponse>>>SearchClients([FromQuery] string name)
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<EntitySelectResponse>>>SearchClients([FromQuery] string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(searchTerm))
                 return Ok(new List<EntitySelectResponse>());
 
-            name = name.ToLower();
+            searchTerm = searchTerm.ToLower();
 
-            var result = await _service.SearchClientsAsync(name);
+            var result = await _service.SearchClientsAsync(searchTerm);
 
             return Ok(result);
         }

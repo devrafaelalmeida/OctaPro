@@ -34,7 +34,7 @@ namespace OctaPro.Services
 
             if (!string.IsNullOrEmpty(filter.ProcessNumber))
             {
-                query = query.Where(p => p.ProcessNumber.Contains(filter.ProcessNumber));
+                query = query.Where(p => p.ProcessNumber == filter.ProcessNumber);
             }
 
             if (filter.IdPublicEntity.HasValue)

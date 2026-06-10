@@ -81,6 +81,10 @@ namespace OctaPro.Services
             if (filter.IdPublicEntity.HasValue)
                 query = query.Where(e => e.IdPublic == filter.IdPublicEntity.Value);
 
+            if (!string.IsNullOrEmpty(filter.Name))
+                query = query.Where(e => e.EntityIndividual != null && e.EntityIndividual.Name.ToUpper().Contains(filter.Name.ToUpper()) ||
+                                         e.EntityCompany != null && e.EntityCompany.CorporateName.ToUpper().Contains(filter.Name.ToUpper()));
+
             if (!string.IsNullOrEmpty(filter.Status))
                 query = query.Where(e => e.StatusId == int.Parse(filter.Status));
             
@@ -335,7 +339,7 @@ namespace OctaPro.Services
                 )
                 .Select(e => new EntitySelectResponse
                 {
-                    Id = e.IdPublic,
+                    IdPublic = e.IdPublic,
                     Text = e.EntityIndividual != null
                             ? e.EntityIndividual.Name
                             : e.EntityCompany!.CorporateName

@@ -12,5 +12,8 @@ namespace OctaPro.DTO.Request
         public string? Status { get; set; }
 
         public string? CpfCnpj { get; set; }
+
+        public string? Name { get; set; }
+
     }
 }
