@@ -51,7 +51,7 @@ namespace OctaPro.Services
                 UserId = userLogged.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                StatusPaymentId = StatusPaymentEnum.Pending 
+                StatusPaymentEnum = StatusPaymentEnum.Pending
             };
 
             var settlementInstallments = CreateInstallments(settlement);

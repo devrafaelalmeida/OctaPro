@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using OctaPro.Enums;
 
 namespace OctaPro.Models;
@@ -14,7 +15,15 @@ public partial class Settlement
 
     public long JudicialProcessId { get; set; }
 
-    public StatusPaymentEnum StatusPaymentId { get; set; }
+    public int StatusPaymentId { get; set; }
+
+    [NotMapped]
+    public StatusPaymentEnum StatusPaymentEnum
+    {
+        get => (StatusPaymentEnum)StatusPaymentId;
+        set => StatusPaymentId = (int)value;
+    }
+
 
     public DateTime CreatedAt { get; set; }
 

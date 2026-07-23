@@ -25,12 +25,12 @@ services:
         condition: service_healthy   # aguarda o Postgres estar pronto de verdade
     ports:
       - "5091:5091"   # .NET API
-      - "5173:5173"   # React dev server
+      # - "5173:5173"   # React dev server
     volumes:
       - "./:/app/backend"
-      - "./Frontend/:/app/frontend"
+      # - "../octa-pro-frontend/:/app/frontend"
       - nuget_cache:/root/.nuget/packages   # cache dos pacotes NuGet entre rebuilds
-      - node_modules_cache:/app/frontend/node_modules
+      # - node_modules_cache:/app/frontend/node_modules
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     # ↓ Obrigatório para o vsdbg funcionar (ptrace para attach de processo)
