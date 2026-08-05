@@ -57,6 +57,8 @@ namespace OctaPro.Services
             var settlementInstallments = CreateInstallments(settlement);
 
             _context.Settlements.Add(settlement);
+            _context.SettlementInstallments.AddRange(settlementInstallments);
+
             await _context.SaveChangesAsync();
         }
 
@@ -103,7 +105,7 @@ namespace OctaPro.Services
                 var installment = new SettlementInstallment
                 {
                     IdPublic = Guid.NewGuid(),
-                    Document = $"{i.ToString().PadLeft(5, '0')}/{quantityInstallment}",
+                    Document = $"{(i + 1).ToString().PadLeft(5, '0')}/{quantityInstallment}",
                     ValueInstallment = installmentValue,
                     StatusPaymentId = StatusPaymentEnum.Pending,
                     DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(i)),
@@ -115,11 +117,7 @@ namespace OctaPro.Services
                 installments.Add(installment);
             }
 
-            
-
-
-
-            throw new NotImplementedException();
+            return installments;
         }
     }
 }

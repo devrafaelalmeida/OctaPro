@@ -40,7 +40,7 @@
         },
          // ↓ nova entrada para o Docker
         {
-            "name": "🐳 Docker — Attach .NET",
+            "name": "🐳Docker — Attach .NET",
             "type": "coreclr",
             "request": "attach",
             "processName": "OctaPro",

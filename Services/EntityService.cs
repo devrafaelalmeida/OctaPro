@@ -19,57 +19,6 @@ namespace OctaPro.Services
             _context = context;
         }
 
-        // public async Task<IEnumerable<EntityResponse>> GetEntitiesAsync()
-        // {
-        //     return await _context.Entities
-        //         .Include(e => e.EntityIndividual)
-        //         .Include(e => e.EntityCompany)
-        //         .Select(e => new EntityResponse
-        //         {
-        //             IdPublic = e.IdPublic,
-        //             EntityType = e.EntityType,
-        //             CreatedAt = e.CreatedAt,
-        //             UpdatedAt = e.UpdatedAt,
-        //             // PF
-        //             EntityIndividual = e.EntityIndividual == null ? null : new EntityIndividualResponse
-        //             {
-        //                 Name = e.EntityIndividual.Name,
-        //                 CPF = e.EntityIndividual.Cpf,
-        //                 RG = e.EntityIndividual.Rg,
-        //                 Email = e.EntityIndividual.Email,
-        //                 Mobile = e.EntityIndividual.Mobile,
-        //                 Phone = e.EntityIndividual.Phone,
-        //                 BirthDate = e.EntityIndividual.BirthDate,
-        //                 Address = e.EntityIndividual.Address,
-        //                 Cep = e.EntityIndividual.Cep,
-        //                 HouseNumber = e.EntityIndividual.HouseNumber,
-        //                 Complement = e.EntityIndividual.Complement,
-        //                 City = e.EntityIndividual.City,
-        //                 District = e.EntityIndividual.District,
-        //                 Uf = e.EntityIndividual.Uf
-        //             },
-        //             // PJ
-        //             EntityCompany = e.EntityCompany == null ? null : new EntityCompanyResponse
-        //             {
-        //                 TradeName = e.EntityCompany.TradeName,
-        //                 CNPJ = e.EntityCompany.Cnpj,
-        //                 CorporateName = e.EntityCompany.CorporateName,
-        //                 Email = e.EntityCompany.CorporateEmail,
-        //                 Mobile = e.EntityCompany.CorporateMobile,
-        //                 Phone = e.EntityCompany.CorporatePhone,
-        //                 Address = e.EntityCompany.Address,
-        //                 Cep = e.EntityCompany.Cep,
-        //                 HouseNumber = e.EntityCompany.HouseNumber,
-        //                 Complement = e.EntityCompany.Complement,
-        //                 City = e.EntityCompany.City,
-        //                 District = e.EntityCompany.District,
-        //                 Uf = e.EntityCompany.Uf
-        //             }
-                 
-        //         })
-        //         .ToListAsync();
-        // }
-
         public async Task<IEnumerable<EntityResponse>> GetEntitiesAsync(EntityFilterRequest filter)
         {
 
