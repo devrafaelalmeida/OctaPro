@@ -24,6 +24,8 @@ public partial class Settlement
         set => StatusPaymentId = (int)value;
     }
 
+    [NotMapped]
+    public DateOnly? FirstDueDate { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -40,4 +42,37 @@ public partial class Settlement
     public virtual StatusPayment StatusPayment { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
+
+        public List<SettlementInstallment> CreateInstallments()
+        {
+            if (QuantityInstallment <= 0)
+                throw new InvalidOperationException("Quantidade de parcelas inválida.");
+                
+            if (FirstDueDate is null)
+                throw new InvalidOperationException("Primeira data de vencimento não informado.");
+
+
+            var installments = new List<SettlementInstallment>();
+
+            decimal installmentValue = Math.Round(Amount / QuantityInstallment, 2);
+
+            for (int i = 0; i < QuantityInstallment; i++)
+            {
+                var dueDate = FirstDueDate.Value.AddMonths(i + 1);
+
+                installments.Add(new SettlementInstallment
+                {
+                    IdPublic = Guid.NewGuid(),
+                    Document = $"{(i + 1):00000}/{QuantityInstallment}",
+                    ValueInstallment = installmentValue,
+                    DueDate = dueDate,
+                    Competence = dueDate.ToString("MM/yyyy"),
+                    StatusPaymentId = StatusPaymentEnum.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            return installments;
+        }
 }

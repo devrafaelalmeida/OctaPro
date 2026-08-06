@@ -7,6 +7,7 @@ namespace OctaPro.DTO.Response
         public Guid IdPublic { get; set; }
 
         public string ProcessNumber { get; set; } = null!;
+        public string Payer { get; set; } = null!;
 
         public decimal Amount { get; set; }
 

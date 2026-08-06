@@ -34,7 +34,7 @@ namespace OctaPro.Models
 
         // public virtual StatusPayment StatusPayment { get; set; } = null!;
 
-     
+        
 
     }
 }

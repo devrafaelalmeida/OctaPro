@@ -7,6 +7,6 @@ namespace OctaPro.Interfaces
 {
    public interface IInstallmentService<TInput, TOutput>
     {
-        IEnumerable<TOutput> CreateInstallments(TInput input);
+        // IEnumerable<TOutput> CreateInstallments(TInput input);
     }
 }

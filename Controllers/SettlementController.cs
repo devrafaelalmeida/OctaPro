@@ -27,15 +27,15 @@ namespace OctaPro.Controllers
         [HttpGet("{idPublic:guid}")]
         public async Task<ActionResult<SettlementResponse>> GetById(Guid idPublic)
         {
-            var process = await _service.GetByIdAsync(idPublic);
-            if (process == null)
+            var settlement = await _service.GetByIdAsync(idPublic);
+            if (settlement == null)
                 return NotFound();
 
-            return Ok(process);
+            return Ok(settlement);
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveProcess(SettlementRequest request)
+        public async Task<IActionResult> SaveSettlement(SettlementRequest request)
         {
             string? userLoggedUUID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -49,7 +49,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpDelete("{settlementId:guid}")]
-        public async Task<IActionResult> DeleteEntity(Guid settlementId)
+        public async Task<IActionResult> DeleteSettlement(Guid settlementId)
         {
             if (!await _service.DeleteAsync(settlementId))
                 return NotFound("Acordo não encontrado.");

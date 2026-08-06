@@ -10,7 +10,7 @@ using OctaPro.Services.interfaces;
 
 namespace OctaPro.Services
 {
-    public class SettlementService : ISettlementService, IInstallmentService<Settlement, SettlementInstallment>
+    public class SettlementService : ISettlementService
     {
         private readonly AppDbContext _context;
         public SettlementService(AppDbContext context)
@@ -20,14 +20,56 @@ namespace OctaPro.Services
 
         public async Task<IEnumerable<SettlementResponse>> GetAllAsync(SettlementFilterRequest filter)
         {
-            throw new NotImplementedException();
+            var query = _context.Settlements
+                .Include(s => s.JudicialProcess)
+                .Include(s => s.StatusPayment)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.ProcessNumber))
+            {
+                query = query.Where(s => s.JudicialProcess.ProcessNumber == filter.ProcessNumber);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Status))
+            {
+                var status = int.Parse(filter.Status);
+                query = query.Where(s => s.StatusPaymentId == status);
+            }
+
+            return await query
+                .Select(s => new SettlementResponse
+                {
+                    IdPublic = s.IdPublic,
+                    ProcessNumber = s.JudicialProcess.ProcessNumber,
+                    Payer = s.JudicialProcess.Respondent,
+                    Amount = s.Amount,
+                    QuantityInstallment = s.QuantityInstallment,
+                    CreatedAt = s.CreatedAt,
+                    StatusPayment = s.StatusPayment.Description
+                })
+                .ToListAsync();
         }
 
         public async Task<SettlementResponse?> GetByIdAsync(Guid idPublic)
         {
-                      throw new NotImplementedException();
+            var settlement = await _context.Settlements
+                .Include(s => s.JudicialProcess)
+                .Include(s => s.StatusPayment)
+                .FirstOrDefaultAsync(s => s.IdPublic == idPublic);
 
+            if (settlement == null)
+                return null;
 
+            return new SettlementResponse
+            {
+                IdPublic = settlement.IdPublic,
+                ProcessNumber = settlement.JudicialProcess.ProcessNumber,
+                Amount = settlement.Amount,
+                QuantityInstallment = settlement.QuantityInstallment,
+                FirstDayPayment = settlement.FirstDueDate?.Day ?? 0,
+                CreatedAt = settlement.CreatedAt,
+                StatusPayment = settlement.StatusPayment.Description
+            };
         }
 
         public async Task CreateAsync(SettlementRequest request, Guid userLoggedUUID)
@@ -35,8 +77,6 @@ namespace OctaPro.Services
 
             var userLogged = await _context.Users.FirstOrDefaultAsync(user => user.IdPublic == userLoggedUUID)
             ?? throw new Exception("Usuário não encontrado");
-
-            Console.WriteLine($"Request: {request.Amount}, {request.ProcessNumberId}, {request.QuantityInstallment}, {request.Note}");
 
             var judicialProcess = await _context.JudicialProcesses.FirstOrDefaultAsync(p => p.IdPublic == request.ProcessNumberId)
                 ?? throw new Exception("Processo judicial não encontrado");
@@ -51,10 +91,11 @@ namespace OctaPro.Services
                 UserId = userLogged.Id,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                StatusPaymentEnum = StatusPaymentEnum.Pending
+                StatusPaymentEnum = StatusPaymentEnum.Pending,
+                FirstDueDate = request.FirstDueDate
             };
 
-            var settlementInstallments = CreateInstallments(settlement);
+            var settlementInstallments = settlement.CreateInstallments();
 
             _context.Settlements.Add(settlement);
             _context.SettlementInstallments.AddRange(settlementInstallments);
@@ -94,30 +135,5 @@ namespace OctaPro.Services
             return true;
         }
 
-        public IEnumerable<SettlementInstallment> CreateInstallments(Settlement settlement)
-        {
-            var installments = new List<SettlementInstallment>();
-            var quantityInstallment = settlement.QuantityInstallment;
-            decimal installmentValue = Math.Round(settlement.Amount / settlement.QuantityInstallment, 2);
-
-            for (int i = 0; i < quantityInstallment; i++)
-            {
-                var installment = new SettlementInstallment
-                {
-                    IdPublic = Guid.NewGuid(),
-                    Document = $"{(i + 1).ToString().PadLeft(5, '0')}/{quantityInstallment}",
-                    ValueInstallment = installmentValue,
-                    StatusPaymentId = StatusPaymentEnum.Pending,
-                    DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(i)),
-                    Competence = DateTime.UtcNow.AddMonths(i).ToString("MM/yyyy"),
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                };
-
-                installments.Add(installment);
-            }
-
-            return installments;
-        }
     }
 }

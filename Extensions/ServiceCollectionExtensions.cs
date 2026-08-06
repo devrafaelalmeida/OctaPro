@@ -13,8 +13,6 @@ namespace OctaPro.Extensions
             services.AddScoped<IEntityService, EntityService>();
             services.AddScoped<IJudicialProcessService, JudicialProcessService>();  
             services.AddScoped<ISettlementService, SettlementService>();  
-            services.AddScoped<IInstallmentService<Settlement, SettlementInstallment>, SettlementService>();  
-
             
 
 

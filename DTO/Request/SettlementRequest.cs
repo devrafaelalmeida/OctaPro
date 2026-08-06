@@ -8,7 +8,7 @@ namespace OctaPro.DTO
 
         public int QuantityInstallment { get; set; }
 
-        public DateOnly FirstDatePayment { get; set; }
+        public DateOnly FirstDueDate { get; set; }
 
         public string Note { get; set; } = string.Empty;
 
