@@ -43,6 +43,8 @@ public partial class Settlement
 
     public virtual User User { get; set; } = null!;
 
+    public virtual ICollection<SettlementInstallment> SettlementInstallments { get; set; } = new List<SettlementInstallment>();
+
         public List<SettlementInstallment> CreateInstallments()
         {
             if (QuantityInstallment <= 0)
@@ -62,6 +64,7 @@ public partial class Settlement
 
                 installments.Add(new SettlementInstallment
                 {
+                    Settlement = this,
                     IdPublic = Guid.NewGuid(),
                     Document = $"{(i + 1):00000}/{QuantityInstallment}",
                     ValueInstallment = installmentValue,

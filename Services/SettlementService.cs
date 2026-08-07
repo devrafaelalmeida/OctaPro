@@ -45,7 +45,22 @@ namespace OctaPro.Services
                     Amount = s.Amount,
                     QuantityInstallment = s.QuantityInstallment,
                     CreatedAt = s.CreatedAt,
-                    StatusPayment = s.StatusPayment.Description
+                    StatusPayment = s.StatusPayment.Description,
+                    SettlementInstallments = s.SettlementInstallments
+                        .OrderBy(i => i.DueDate)
+                        .Select(i => new SettlementInstallmentResponse
+                        {
+                            IdPublic = i.IdPublic,
+                            Document = i.Document,
+                            ValueInstallment = i.ValueInstallment,
+                            PaidAmount = i.PaidAmount,
+                            StatusPayment = i.StatusPaymentId.ToString(),
+                            PaymentDate = i.PaymentDate,
+                            DueDate = i.DueDate,
+                            Competence = i.Competence,
+                            Note = i.Note
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
         }
@@ -55,6 +70,7 @@ namespace OctaPro.Services
             var settlement = await _context.Settlements
                 .Include(s => s.JudicialProcess)
                 .Include(s => s.StatusPayment)
+                .Include(s => s.SettlementInstallments)
                 .FirstOrDefaultAsync(s => s.IdPublic == idPublic);
 
             if (settlement == null)
@@ -68,7 +84,22 @@ namespace OctaPro.Services
                 QuantityInstallment = settlement.QuantityInstallment,
                 FirstDayPayment = settlement.FirstDueDate?.Day ?? 0,
                 CreatedAt = settlement.CreatedAt,
-                StatusPayment = settlement.StatusPayment.Description
+                StatusPayment = settlement.StatusPayment.Description,
+                SettlementInstallments = settlement.SettlementInstallments
+                    .OrderBy(i => i.DueDate)
+                    .Select(i => new SettlementInstallmentResponse
+                    {
+                        IdPublic = i.IdPublic,
+                        Document = i.Document,
+                        ValueInstallment = i.ValueInstallment,
+                        PaidAmount = i.PaidAmount,
+                        StatusPayment = i.StatusPaymentId.ToString(),
+                        PaymentDate = i.PaymentDate,
+                        DueDate = i.DueDate,
+                        Competence = i.Competence,
+                        Note = i.Note
+                    })
+                    .ToList()
             };
         }
 

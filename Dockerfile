@@ -17,6 +17,10 @@ RUN apt-get update && apt-get install -y curl build-essential \
 RUN curl -sSL https://aka.ms/getvsdbgsh \
     | bash /dev/stdin -v latest -l /vsdbg
 
+RUN dotnet tool install --global dotnet-ef
+
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
 WORKDIR /app
 
 # Expõe: .NET API | React dev server | (porta reservada para vsdbg via docker exec, não precisa expor)

@@ -12,9 +12,13 @@ namespace OctaPro.Models
     {
         public int Id { get; set; }
 
+        public int? SettlementId { get; set; }
+
         public string Document { get; set; } = string.Empty;
         
         public decimal? ValueInstallment { get; set; }
+
+        public decimal? PaidAmount { get; set; }
 
         public StatusPaymentEnum StatusPaymentId { get; set; }
 
@@ -31,6 +35,8 @@ namespace OctaPro.Models
         public string? Note { get; set; }
 
         public Guid IdPublic { get; set; }
+
+        public virtual Settlement? Settlement { get; set; }
 
         // public virtual StatusPayment StatusPayment { get; set; } = null!;
 

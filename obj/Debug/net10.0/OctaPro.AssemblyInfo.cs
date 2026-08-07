@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OctaPro")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+981fcbb68efd406dfa82724fc7148f6116ed5726")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d011a8eea55d8721ecaa042fa247f1ccc50dc76a")]
 [assembly: System.Reflection.AssemblyProductAttribute("OctaPro")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OctaPro")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

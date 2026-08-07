@@ -1,5 +1,3 @@
-using OctaPro.Models;
-
 namespace OctaPro.DTO.Response
 {
     public class SettlementResponse
@@ -19,6 +17,6 @@ namespace OctaPro.DTO.Response
         
         public string StatusPayment { get; set; } = null!;
 
-        
+        public List<SettlementInstallmentResponse> SettlementInstallments { get; set; } = new();
     }
 }

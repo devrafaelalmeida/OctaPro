@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OctaPro.Data;
@@ -11,9 +12,11 @@ using OctaPro.Data;
 namespace OctaPro.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807022808_AddSettlementInstallmentRelationship")]
+    partial class AddSettlementInstallmentRelationship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1217,11 +1220,6 @@ namespace OctaPro.Migrations
 
                     b.Property<DateOnly?>("PaymentDate")
                         .HasColumnType("date");
-
-                    b.Property<decimal?>("PaidAmount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)")
-                        .HasColumnName("paid_amount");
 
                     b.Property<int?>("SettlementId")
                         .HasColumnType("integer")
