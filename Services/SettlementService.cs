@@ -134,6 +134,32 @@ namespace OctaPro.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task<SettlementInstallmentResponse> AddInstallmentAsync(Guid settlementId, SettlementInstallmentRequest request)
+        {
+            var settlement = await _context.Settlements
+                .FirstOrDefaultAsync(s => s.IdPublic == settlementId)
+                ?? throw new Exception("Acordo não encontrado");
+
+            var installment = settlement.AddInstallment(request.ValueInstallment, request.DueDate);
+
+            _context.SettlementInstallments.Add(installment);
+
+            await _context.SaveChangesAsync();
+
+            return new SettlementInstallmentResponse
+            {
+                IdPublic = installment.IdPublic,
+                Document = installment.Document,
+                ValueInstallment = installment.ValueInstallment,
+                PaidAmount = installment.PaidAmount,
+                StatusPayment = installment.StatusPaymentId.ToString(),
+                PaymentDate = installment.PaymentDate,
+                DueDate = installment.DueDate,
+                Competence = installment.Competence,
+                Note = installment.Note
+            };
+        }
+
         public async Task<bool> DeleteAsync(Guid idPublic)
         {
             var process = await _context.JudicialProcesses

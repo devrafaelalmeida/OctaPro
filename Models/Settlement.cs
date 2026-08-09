@@ -45,37 +45,66 @@ public partial class Settlement
 
     public virtual ICollection<SettlementInstallment> SettlementInstallments { get; set; } = new List<SettlementInstallment>();
 
-        public List<SettlementInstallment> CreateInstallments()
+    public List<SettlementInstallment> CreateInstallments()
+    {
+        if (QuantityInstallment <= 0)
+            throw new InvalidOperationException("Quantidade de parcelas inválida.");
+
+        if (FirstDueDate is null)
+            throw new InvalidOperationException("Primeira data de vencimento não informado.");
+
+
+        var installments = new List<SettlementInstallment>();
+
+        decimal installmentValue = Math.Round(Amount / QuantityInstallment, 2);
+        
+        if (installmentValue <= 0)
+            throw new InvalidOperationException("Valor da parcela inválido.");
+
+        for (int i = 0; i < QuantityInstallment; i++)
         {
-            if (QuantityInstallment <= 0)
-                throw new InvalidOperationException("Quantidade de parcelas inválida.");
-                
-            if (FirstDueDate is null)
-                throw new InvalidOperationException("Primeira data de vencimento não informado.");
+            var dueDate = FirstDueDate.Value.AddMonths(i + 1);
 
-
-            var installments = new List<SettlementInstallment>();
-
-            decimal installmentValue = Math.Round(Amount / QuantityInstallment, 2);
-
-            for (int i = 0; i < QuantityInstallment; i++)
+            installments.Add(new SettlementInstallment
             {
-                var dueDate = FirstDueDate.Value.AddMonths(i + 1);
-
-                installments.Add(new SettlementInstallment
-                {
-                    Settlement = this,
-                    IdPublic = Guid.NewGuid(),
-                    Document = $"{(i + 1):00000}/{QuantityInstallment}",
-                    ValueInstallment = installmentValue,
-                    DueDate = dueDate,
-                    Competence = dueDate.ToString("MM/yyyy"),
-                    StatusPaymentId = StatusPaymentEnum.Pending,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
-            }
-
-            return installments;
+                Settlement = this,
+                IdPublic = Guid.NewGuid(),
+                Document = $"{(i + 1):00000}/{QuantityInstallment}",
+                ValueInstallment = installmentValue,
+                DueDate = dueDate,
+                Competence = dueDate.ToString("MM/yyyy"),
+                StatusPaymentId = StatusPaymentEnum.Pending,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
         }
+
+        return installments;
+    }
+
+    public SettlementInstallment AddInstallment(decimal valueInstallment, DateOnly dueDate)
+    {
+        if (valueInstallment <= 0)
+            throw new InvalidOperationException("Valor da parcela inválido.");
+
+        var installmentNumber = QuantityInstallment + 1;
+        var now = DateTime.UtcNow;
+
+        var installment = new SettlementInstallment
+        {
+            Settlement = this,
+            IdPublic = Guid.NewGuid(),
+            Document = $"{installmentNumber:00000}/1",
+            ValueInstallment = valueInstallment,
+            DueDate = dueDate,
+            Competence = dueDate.ToString("MM/yyyy"),
+            StatusPaymentId = StatusPaymentEnum.Pending,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        QuantityInstallment = installmentNumber;
+
+        return installment;
+    }
 }

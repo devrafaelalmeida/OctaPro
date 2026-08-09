@@ -48,6 +48,16 @@ namespace OctaPro.Controllers
             return StatusCode(201);
         }
 
+        [HttpPost("{settlementId:guid}/add-installment")]
+        public async Task<ActionResult<SettlementInstallmentResponse>> AddInstallment(
+            Guid settlementId,
+            SettlementInstallmentRequest request)
+        {
+            var installment = await _service.AddInstallmentAsync(settlementId, request);
+
+            return StatusCode(201, installment);
+        }
+
         [HttpDelete("{settlementId:guid}")]
         public async Task<IActionResult> DeleteSettlement(Guid settlementId)
         {
