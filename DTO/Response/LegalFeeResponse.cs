@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace OctaPro.DTO.Response
 {
     public class LegalFeeResponse
@@ -17,11 +12,19 @@ namespace OctaPro.DTO.Response
 
         public long JudicialProcessId { get; set; }
 
+        public string ProcessNumber { get; set; } = null!;
+
+        public string Payer { get; set; } = null!;
+
         public int StatusPaymentId { get; set; }
+
+        public string StatusPayment { get; set; } = null!;
 
         public string? Note { get; set; }
 
         public List<EntityResponse> Entities { get; set; } = new();
+
+        public List<InstallmentResponse> LegalFeeInstallments { get; set; } = new();
 
         public DateTime CreatedAt { get; set; }
 

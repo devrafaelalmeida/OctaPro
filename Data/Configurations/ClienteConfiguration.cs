@@ -11,26 +11,11 @@ public class ClientConfiguration : IEntityTypeConfiguration<Client>
         entity.HasKey(e => e.Id)
               .HasName("clients_pkey");
 
-        entity.ToTable("clients");
-
-        entity.Property(e => e.Id)
-            .HasColumnName("id");
-
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
-
-        entity.Property(e => e.EntityId)
-            .HasColumnName("entity_id");
-
-        entity.Property(e => e.LawyerId)
-            .HasColumnName("lawyer_id");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
+            .HasDefaultValueSql("now()");
 
         entity.HasOne(d => d.Lawyer)
             .WithMany(p => p.Clients)

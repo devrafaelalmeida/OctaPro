@@ -8,15 +8,7 @@ public class JudicialProcessEntityConfiguration : IEntityTypeConfiguration<Judic
 {
     public void Configure(EntityTypeBuilder<JudicialProcessEntity> entity)
     {
-        entity.ToTable("judicial_process_entity");
-
         entity.HasKey(e => new { e.JudicialProcessId, e.EntityId });
-
-        entity.Property(e => e.JudicialProcessId)
-            .HasColumnName("judicial_process_id");
-
-        entity.Property(e => e.EntityId)
-            .HasColumnName("entity_id");
 
         entity.HasOne(e => e.JudicialProcess)
             .WithMany(p => p.JudicialProcessEntities)

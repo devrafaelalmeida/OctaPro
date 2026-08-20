@@ -3,6 +3,7 @@ using OctaPro.Data;
 using OctaPro.DTO;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
+using OctaPro.Enums;
 using OctaPro.Models;
 using OctaPro.Services.interfaces;
 
@@ -199,6 +200,7 @@ namespace OctaPro.Services
                 NatureActionId = request.NatureActionId,
                 JudicialActionId = request.JudicialActionId,
                 UserId = userLogged.Id,
+                EmpresaId = userLogged.EmpresaId,
                 IdPublic = Guid.NewGuid()
             };
 
@@ -212,6 +214,49 @@ namespace OctaPro.Services
 
             _context.JudicialProcesses.Add(process);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> ArchiveAsync(Guid idPublic)
+        {
+            var process = await _context.JudicialProcesses
+                .FirstOrDefaultAsync(p => p.IdPublic == idPublic);
+
+            if (process == null)
+                return false;
+
+            var settlementIds = await _context.Settlements
+                .Where(s => s.JudicialProcessId == process.Id)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var hasUnpaidSettlementInstallments = await _context.SettlementInstallments
+                .AnyAsync(i =>
+                    i.ReferenceId.HasValue &&
+                    settlementIds.Contains(i.ReferenceId.Value) &&
+                    i.StatusPaymentId != StatusPaymentEnum.Paid);
+
+            if (hasUnpaidSettlementInstallments)
+                throw new InvalidOperationException("Não é possível arquivar o processo. Existem parcelas de acordo pendentes ou atrasadas.");
+
+            var legalFeeIds = await _context.LegalFees
+                .Where(lf => lf.JudicialProcessId == process.Id)
+                .Select(lf => lf.Id)
+                .ToListAsync();
+
+            var hasUnpaidLegalFeeInstallments = await _context.LegalFeeInstallments
+                .AnyAsync(i =>
+                    i.ReferenceId.HasValue &&
+                    legalFeeIds.Contains(i.ReferenceId.Value) &&
+                    i.StatusPaymentId != StatusPaymentEnum.Paid);
+
+            if (hasUnpaidLegalFeeInstallments)
+                throw new InvalidOperationException("Não é possível arquivar o processo. Existem parcelas de honorários pendentes ou atrasadas.");
+
+            process.IsArchived = true;
+            process.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteAsync(Guid idPublic)

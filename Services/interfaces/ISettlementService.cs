@@ -9,7 +9,7 @@ namespace OctaPro.Services.interfaces
         Task<IEnumerable<SettlementResponse>> GetAllAsync(SettlementFilterRequest filter = null!);
         Task<SettlementResponse?> GetByIdAsync(Guid idPublic);
         Task CreateAsync(SettlementRequest request, Guid userLoggedUUID);
-        Task<SettlementInstallmentResponse> AddInstallmentAsync(Guid settlementId, SettlementInstallmentRequest request);
+        Task<InstallmentResponse> AddInstallmentAsync(Guid settlementId, InstallmentRequest request);
         Task<bool> DeleteAsync(Guid idPublic);
         Task<bool> UpdateAsync(Guid settlementId, SettlementRequest request);
 

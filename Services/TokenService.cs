@@ -36,20 +36,33 @@ namespace OctaPro.Services
                 claims.Add(new Claim(ClaimTypes.Role, role));
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+                Encoding.UTF8.GetBytes(GetRequiredConfigurationValue("Jwt:Key", "JWT_KEY")));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: GetConfigurationValue("Jwt:Issuer", "JWT_ISSUER"),
+                audience: GetConfigurationValue("Jwt:Audience", "JWT_AUDIENCE"),
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(
-                    double.Parse(_configuration["Jwt:ExpireMinutes"]!)),
+                    double.Parse(GetRequiredConfigurationValue("Jwt:ExpireMinutes", "JWT_EXPIRE_MINUTES"))),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string? GetConfigurationValue(params string[] keys)
+        {
+            return keys
+                .Select(key => _configuration[key])
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+        }
+
+        private string GetRequiredConfigurationValue(params string[] keys)
+        {
+            return GetConfigurationValue(keys)
+                ?? throw new InvalidOperationException($"Configuração obrigatória ausente: {string.Join(" ou ", keys)}");
         }
     }
 }

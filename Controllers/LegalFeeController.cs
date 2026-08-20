@@ -1,172 +1,82 @@
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OctaPro.Data;
-using OctaPro.DTO.Response;
 using OctaPro.DTO.Request;
-using OctaPro.Models;
+using OctaPro.DTO.Response;
+using OctaPro.Services.interfaces;
 
 namespace OctaPro.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Manager,Common")]
+    [Route("api/legal-fees")]
     public class LegalFeeController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ILegalFeeService _service;
 
-        public LegalFeeController(AppDbContext context)
+        public LegalFeeController(ILegalFeeService service)
         {
-            _context = context;
+            _service = service;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LegalFeeResponse>>> GetLegalFees()
+        public async Task<ActionResult<IEnumerable<LegalFeeResponse>>> GetAll([FromQuery] SettlementFilterRequest filter)
         {
-            var legalFees = await _context.LegalFees
-                .Select(lf => new LegalFeeResponse
-                {
-                    IdPublic = lf.IdPublic,
-                    UserId = lf.UserId,
-                    Amount = lf.Amount,
-                    QuantityInstallment = lf.QuantityInstallment,
-                    JudicialProcessId = lf.JudicialProcessId,
-                    StatusPaymentId = lf.StatusPaymentId,
-                    Note = lf.Note,
-                    Entities = lf.LegalFeeEntities
-                        .Select(lfe => new EntityResponse
-                        {
-                            IdPublic = lfe.Entity.IdPublic,
-                            EntityType = lfe.Entity.EntityType,
-                            // Name = lfe.Entity.EntityIndividual != null ? lfe.Entity.EntityIndividual.Name : lfe.Entity.EntityCompany != null ? lfe.Entity.EntityCompany.CorporateName : null,
-                            // CorporateName = lfe.Entity.EntityCompany != null ? lfe.Entity.EntityCompany.CorporateName : null
-                        })
-                        .ToList(),
-                    CreatedAt = lf.CreatedAt,
-                    UpdatedAt = lf.UpdatedAt
-                })
-                .ToListAsync();
-            
-            return Ok(legalFees);
+            return Ok(await _service.GetAllAsync(filter));
         }
 
         [HttpGet("{idPublic:guid}")]
-        public async Task<ActionResult<LegalFeeResponse>> GetLegalFeeById(Guid idPublic)
+        public async Task<ActionResult<LegalFeeResponse>> GetById(Guid idPublic)
         {
-            var entity = await _context.LegalFees
-                .Where(e => e.IdPublic == idPublic)
-                .Select(lf => new LegalFeeResponse
-                {
-                    IdPublic = lf.IdPublic,
-                    UserId = lf.UserId,
-                    Amount = lf.Amount,
-                    QuantityInstallment = lf.QuantityInstallment,
-                    JudicialProcessId = lf.JudicialProcessId,
-                    StatusPaymentId = lf.StatusPaymentId,
-                    Note = lf.Note,
-                    Entities = lf.LegalFeeEntities
-                        .Select(lfe => new EntityResponse
-                        {
-                            IdPublic = lfe.Entity.IdPublic,
-                            EntityType = lfe.Entity.EntityType,
-                            // Name = lfe.Entity.EntityIndividual != null ? lfe.Entity.EntityIndividual.Name : lfe.Entity.EntityCompany != null ? lfe.Entity.EntityCompany.CorporateName : null,
-                            // CorporateName = lfe.Entity.EntityCompany != null ? lfe.Entity.EntityCompany.CorporateName : null
-                        })
-                        .ToList(),
-                    CreatedAt = lf.CreatedAt,
-                    UpdatedAt = lf.UpdatedAt
-                })
-                .FirstOrDefaultAsync();
-
-            if (entity == null)
+            var legalFee = await _service.GetByIdAsync(idPublic);
+            if (legalFee == null)
                 return NotFound();
 
-            return Ok(entity);
+            return Ok(legalFee);
         }
 
         [HttpPost]
-        public async Task<IActionResult> saveLegalFee(LegalFeeRequest request)
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> SaveLegalFee(LegalFeeRequest request)
         {
+            string? userLoggedUUID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var process = await _context.JudicialProcesses
-            .Include(p => p.JudicialProcessEntities)
-            .Where(e => e.ProcessNumber.Contains(request.ProcessNumber))
-            .FirstOrDefaultAsync();
+            if (userLoggedUUID == null)
+                return Unauthorized();
 
-            if (process == null)
-                throw new Exception("Processo judicial não encontrado.");
-
-            if (process.IsArchived)
-            {
-                return BadRequest("Não é possível lançar honorários em um processo encerrado.");
-            }
-
-            var clientes = process.JudicialProcessEntities;
-            
-
-            var legalFee = new LegalFee
-            {
-                IdPublic = Guid.NewGuid(),
-                JudicialProcess = process,
-                StatusPaymentId = request.StatusPaymentId,
-                Note = request.Note,
-                UserId = 1,
-                LegalFeeEntities = clientes.Select(c => new LegalFeeEntity
-                {
-                    EntityId = c.EntityId
-                }).ToList()         
-            };
-
-            _context.LegalFees.Add(legalFee);
-            await _context.SaveChangesAsync();
+            await _service.CreateAsync(request, Guid.Parse(userLoggedUUID));
             return StatusCode(201);
         }
 
-
-        [HttpPut("{legalFeeId:guid}")]
-        public async Task<IActionResult> UpdateLegalFee(
+        [HttpPost("{legalFeeId:guid}/add-installment")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<InstallmentResponse>> AddInstallment(
             Guid legalFeeId,
-            LegalFeeRequest request)
+            InstallmentRequest request)
         {
-            var legalFee = await _context.LegalFees
-                .FirstOrDefaultAsync(e => e.IdPublic == legalFeeId);
+            var installment = await _service.AddInstallmentAsync(legalFeeId, request);
 
-            if (legalFee == null)
-                return NotFound("Registro de honorário não encontrado.");
-
-            legalFee.Note = request.Note;
-            legalFee.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return NoContent(); 
+            return StatusCode(201, installment);
         }
 
         [HttpDelete("{legalFeeId:guid}")]
-        public async Task<IActionResult> DeleteEntity(Guid legalFeeId)
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> DeleteLegalFee(Guid legalFeeId)
         {
-            var legalFee = await _context.LegalFees
-                .FirstOrDefaultAsync(e => e.IdPublic == legalFeeId);
-
-            if (legalFee == null)
-                return NotFound("Entidade não encontrada.");
-
-            _context.LegalFees.Remove(legalFee);
-            await _context.SaveChangesAsync();
+            if (!await _service.DeleteAsync(legalFeeId))
+                return NotFound("Honorário não encontrado.");
 
             return NoContent();
         }
 
+        [HttpPut("{legalFeeId:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> UpdateLegalFee(Guid legalFeeId, LegalFeeRequest request)
+        {
+            if (!await _service.UpdateAsync(legalFeeId, request))
+                return NotFound();
 
-
-
-
-
-
-
-
-
-
-
-
-
+            return NoContent();
+        }
     }
 }

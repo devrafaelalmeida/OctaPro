@@ -19,7 +19,10 @@ public static class JwtConfiguration
         })
         .AddJwtBearer(options =>
         {
-            options.RequireHttpsMetadata = false;
+            var environmentName = configuration["ENVIROMENT"] ?? "DEV";
+            var isProduction = string.Equals(environmentName, "PRODUCTION", StringComparison.OrdinalIgnoreCase);
+
+            options.RequireHttpsMetadata = isProduction;
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -28,13 +31,26 @@ public static class JwtConfiguration
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
 
-                ValidIssuer = jwtSettings["Issuer"],
-                ValidAudience = jwtSettings["Audience"],
+                ValidIssuer = GetConfigurationValue(configuration, "Jwt:Issuer", "JWT_ISSUER"),
+                ValidAudience = GetConfigurationValue(configuration, "Jwt:Audience", "JWT_AUDIENCE"),
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtSettings["Key"]!))
+                    Encoding.UTF8.GetBytes(GetRequiredConfigurationValue(configuration, "Jwt:Key", "JWT_KEY")))
             };
         });
 
         return services;
+    }
+
+    private static string? GetConfigurationValue(IConfiguration configuration, params string[] keys)
+    {
+        return keys
+            .Select(key => configuration[key])
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+    }
+
+    private static string GetRequiredConfigurationValue(IConfiguration configuration, params string[] keys)
+    {
+        return GetConfigurationValue(configuration, keys)
+            ?? throw new InvalidOperationException($"Configuração obrigatória ausente: {string.Join(" ou ", keys)}");
     }
 }

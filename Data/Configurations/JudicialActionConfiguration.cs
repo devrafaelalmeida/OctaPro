@@ -11,28 +11,14 @@ public class JudicialActionConfiguration : IEntityTypeConfiguration<JudicialActi
         entity.HasKey(e => e.Id)
               .HasName("judicials_actions_pkey");
 
-        entity.ToTable("judicials_actions");
-
         entity.Property(e => e.Id)
-            .UseIdentityAlwaysColumn()
-            .HasColumnName("id");
+            .UseIdentityAlwaysColumn();
 
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
-
-        entity.Property(e => e.Action)
-            .HasMaxLength(150)
-            .HasColumnName("judicial_action");
-
-        entity.Property(e => e.NatureActionId)
-            .HasColumnName("nature_action_id");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
+            .HasDefaultValueSql("now()");
 
         entity.HasOne(d => d.NatureAction)
             .WithMany(p => p.JudicialAction)

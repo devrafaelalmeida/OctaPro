@@ -1,18 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace OctaPro.Models;
 
+[Index(nameof(Email), IsUnique = true, Name = "users_email_unique")]
+[Index(nameof(IdPublic), IsUnique = true, Name = "users_id_public_key")]
+[Table("users")]
 public partial class User : IdentityUser<long>
 {
+    [MaxLength(2048)]
+    [Column("profile_photo_path")]
     public string? ProfilePhotoPath { get; set; }
 
+    [Column("created_at", TypeName = "timestamp(0) without time zone")]
     public DateTime? CreatedAt { get; set; }
 
+    [Column("updated_at", TypeName = "timestamp(0) without time zone")]
     public DateTime? UpdatedAt { get; set; }
 
+    [Column("id_public")]
     public Guid IdPublic { get; set; }
+
+    [Column("empresa_id")]
+    public int EmpresaId { get; set; }
 
     public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
 

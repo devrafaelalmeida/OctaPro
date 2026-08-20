@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctaPro.DTO;
 using OctaPro.DTO.Request;
@@ -8,6 +9,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Admin,Manager,Common")]
     [Route("api/process")]
     public class JudicialProcessController : ControllerBase
     {
@@ -35,6 +37,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> SaveProcess(JudicialProcessRequest request)
         {
             string? userLoggedUUID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -48,7 +51,18 @@ namespace OctaPro.Controllers
             return StatusCode(201);
         }
 
+        [HttpPatch("{idPublic:guid}/archive")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> ArchiveProcess(Guid idPublic)
+        {
+            if (!await _service.ArchiveAsync(idPublic))
+                return NotFound("Processo judicial não encontrado.");
+
+            return NoContent();
+        }
+
         [HttpDelete("{idPublic:guid}")]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> DeleteEntity(Guid idPublic)
         {
             if (!await _service.DeleteAsync(idPublic))

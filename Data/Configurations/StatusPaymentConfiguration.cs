@@ -11,24 +11,13 @@ public class StatusPaymentConfiguration : IEntityTypeConfiguration<StatusPayment
         entity.HasKey(e => e.Id)
               .HasName("status_payment_pkey");
 
-        entity.ToTable("status_payment");
-
         entity.Property(e => e.Id)
-            .UseIdentityAlwaysColumn()
-            .HasColumnName("id");
+            .UseIdentityAlwaysColumn();
 
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
-
-        entity.Property(e => e.Description)
-            .HasMaxLength(30)
-            .HasColumnName("description");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
+            .HasDefaultValueSql("now()");
     }
 }

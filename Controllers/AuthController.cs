@@ -1,4 +1,4 @@
-    using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctaPro.DTO;
 using OctaPro.Services.interfaces;
@@ -16,6 +16,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [Authorize(Roles = "Admin,Manager")]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
@@ -27,6 +28,7 @@ public class AuthController : ControllerBase
         return StatusCode(201);
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
@@ -38,6 +40,7 @@ public class AuthController : ControllerBase
         return Ok(new { token });
     }
 
+    [Authorize(Roles = "Admin,Manager")]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
@@ -45,7 +48,7 @@ public class AuthController : ControllerBase
         return Ok();
     }
     
-    [Authorize]
+    [Authorize(Roles = "Admin,Manager,Common")]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {

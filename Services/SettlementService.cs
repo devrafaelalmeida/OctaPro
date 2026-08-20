@@ -36,7 +36,37 @@ namespace OctaPro.Services
                 query = query.Where(s => s.StatusPaymentId == status);
             }
 
-            return await query
+            var settlements = await query.ToListAsync();
+            var settlementIds = settlements.Select(s => s.Id).ToList();
+
+            var installmentsBySettlementId = await _context.SettlementInstallments
+                .Where(i => i.ReferenceId.HasValue && settlementIds.Contains(i.ReferenceId.Value) && i.StatusPaymentId != StatusPaymentEnum.Reverted)
+                .OrderBy(i => i.DueDate)
+                .Select(i => new
+                {
+                    SettlementId = i.ReferenceId!.Value,
+                    Installment = new InstallmentResponse
+                    {
+                        IdPublic = i.IdPublic,
+                        Document = i.Document,
+                        ValueInstallment = i.ValueInstallment,
+                        LateFine = i.LateFine,
+                        AdjustedTotal = i.AdjustedTotal,
+                        PaidAmount = i.PaidAmount,
+                        StatusPayment = i.StatusPaymentId.ToString(),
+                        PaymentDate = i.PaymentDate,
+                        DueDate = i.DueDate,
+                        Competence = i.Competence,
+                        Note = i.Note
+                    }
+                })
+                .ToListAsync();
+
+            var installmentsLookup = installmentsBySettlementId
+                .GroupBy(i => i.SettlementId)
+                .ToDictionary(g => g.Key, g => g.Select(i => i.Installment).ToList());
+
+            return settlements
                 .Select(s => new SettlementResponse
                 {
                     IdPublic = s.IdPublic,
@@ -46,23 +76,9 @@ namespace OctaPro.Services
                     QuantityInstallment = s.QuantityInstallment,
                     CreatedAt = s.CreatedAt,
                     StatusPayment = s.StatusPayment.Description,
-                    SettlementInstallments = s.SettlementInstallments
-                        .OrderBy(i => i.DueDate)
-                        .Select(i => new SettlementInstallmentResponse
-                        {
-                            IdPublic = i.IdPublic,
-                            Document = i.Document,
-                            ValueInstallment = i.ValueInstallment,
-                            PaidAmount = i.PaidAmount,
-                            StatusPayment = i.StatusPaymentId.ToString(),
-                            PaymentDate = i.PaymentDate,
-                            DueDate = i.DueDate,
-                            Competence = i.Competence,
-                            Note = i.Note
-                        })
-                        .ToList()
+                    SettlementInstallments = installmentsLookup.GetValueOrDefault(s.Id, new List<InstallmentResponse>())
                 })
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<SettlementResponse?> GetByIdAsync(Guid idPublic)
@@ -70,11 +86,29 @@ namespace OctaPro.Services
             var settlement = await _context.Settlements
                 .Include(s => s.JudicialProcess)
                 .Include(s => s.StatusPayment)
-                .Include(s => s.SettlementInstallments)
                 .FirstOrDefaultAsync(s => s.IdPublic == idPublic);
 
             if (settlement == null)
                 return null;
+
+            var installments = await _context.SettlementInstallments
+                .Where(i => i.ReferenceId == settlement.Id && i.StatusPaymentId != StatusPaymentEnum.Reverted)
+                .OrderBy(i => i.DueDate)
+                .Select(i => new InstallmentResponse
+                {
+                    IdPublic = i.IdPublic,
+                    Document = i.Document,
+                    ValueInstallment = i.ValueInstallment,
+                    LateFine = i.LateFine,
+                    AdjustedTotal = i.AdjustedTotal,
+                    PaidAmount = i.PaidAmount,
+                    StatusPayment = i.StatusPaymentId.ToString(),
+                    PaymentDate = i.PaymentDate,
+                    DueDate = i.DueDate,
+                    Competence = i.Competence,
+                    Note = i.Note
+                })
+                .ToListAsync();
 
             return new SettlementResponse
             {
@@ -85,21 +119,7 @@ namespace OctaPro.Services
                 FirstDayPayment = settlement.FirstDueDate?.Day ?? 0,
                 CreatedAt = settlement.CreatedAt,
                 StatusPayment = settlement.StatusPayment.Description,
-                SettlementInstallments = settlement.SettlementInstallments
-                    .OrderBy(i => i.DueDate)
-                    .Select(i => new SettlementInstallmentResponse
-                    {
-                        IdPublic = i.IdPublic,
-                        Document = i.Document,
-                        ValueInstallment = i.ValueInstallment,
-                        PaidAmount = i.PaidAmount,
-                        StatusPayment = i.StatusPaymentId.ToString(),
-                        PaymentDate = i.PaymentDate,
-                        DueDate = i.DueDate,
-                        Competence = i.Competence,
-                        Note = i.Note
-                    })
-                    .ToList()
+                SettlementInstallments = installments
             };
         }
 
@@ -120,21 +140,23 @@ namespace OctaPro.Services
                 QuantityInstallment = request.QuantityInstallment,
                 Note = request.Note,
                 UserId = userLogged.Id,
+                EmpresaId = userLogged.EmpresaId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 StatusPaymentEnum = StatusPaymentEnum.Pending,
                 FirstDueDate = request.FirstDueDate
             };
 
-            var settlementInstallments = settlement.CreateInstallments();
-
             _context.Settlements.Add(settlement);
+            await _context.SaveChangesAsync();
+
+            var settlementInstallments = settlement.CreateInstallments();
             _context.SettlementInstallments.AddRange(settlementInstallments);
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task<SettlementInstallmentResponse> AddInstallmentAsync(Guid settlementId, SettlementInstallmentRequest request)
+        public async Task<InstallmentResponse> AddInstallmentAsync(Guid settlementId, InstallmentRequest request)
         {
             var settlement = await _context.Settlements
                 .FirstOrDefaultAsync(s => s.IdPublic == settlementId)
@@ -146,11 +168,13 @@ namespace OctaPro.Services
 
             await _context.SaveChangesAsync();
 
-            return new SettlementInstallmentResponse
+            return new InstallmentResponse
             {
                 IdPublic = installment.IdPublic,
                 Document = installment.Document,
                 ValueInstallment = installment.ValueInstallment,
+                LateFine = installment.LateFine,
+                AdjustedTotal = installment.AdjustedTotal,
                 PaidAmount = installment.PaidAmount,
                 StatusPayment = installment.StatusPaymentId.ToString(),
                 PaymentDate = installment.PaymentDate,

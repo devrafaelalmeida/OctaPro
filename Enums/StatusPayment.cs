@@ -4,6 +4,7 @@ namespace OctaPro.Enums
     {
         Paid = 1,
         Pending = 2,
-        Expired = 3
+        Expired = 3,
+        Reverted = 4,
     }
 }

@@ -10,17 +10,5 @@ public class MigrationConfiguration : IEntityTypeConfiguration<Migration>
     {
         entity.HasKey(e => e.Id)
               .HasName("migrations_pkey");
-
-        entity.ToTable("migrations");
-
-        entity.Property(e => e.Id)
-            .HasColumnName("id");
-
-        entity.Property(e => e.Batch)
-            .HasColumnName("batch");
-
-        entity.Property(e => e.Migration1)
-            .HasMaxLength(255)
-            .HasColumnName("migration");
     }
 }

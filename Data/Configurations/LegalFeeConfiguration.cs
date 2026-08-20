@@ -11,50 +11,20 @@ public class LegalFeeConfiguration : IEntityTypeConfiguration<LegalFee>
         entity.HasKey(e => e.Id)
               .HasName("legal_fees_pkey");
 
-        entity.ToTable("legal_fees");
-
-        entity.HasIndex(e => e.IdPublic)
-              .IsUnique()
-              .HasDatabaseName("legal_fees_id_public_key");
-
         entity.Property(e => e.Id)
-            .UseIdentityAlwaysColumn()
-            .HasColumnName("id");
+            .UseIdentityAlwaysColumn();
 
         entity.Property(e => e.Amount)
-            .HasPrecision(10, 2)
-            .HasDefaultValue(0.0m)
-            .HasColumnName("amount");
+            .HasDefaultValue(0.0m);
 
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
-
-        entity.Property(e => e.IdPublic)
-            .HasColumnName("id_public");
-
-        entity.Property(e => e.JudicialProcessId)
-            .HasColumnName("judicial_process_id");
-
-        entity.Property(e => e.Note)
-            .HasMaxLength(255)
-            .HasColumnName("note");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.QuantityInstallment)
-            .HasColumnName("quantity_installment")
             .HasDefaultValue(1);
 
-        entity.Property(e => e.StatusPaymentId)
-            .HasColumnName("status_payment_id");
-
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
-
-        entity.Property(e => e.UserId)
-            .HasColumnName("user_id");
+            .HasDefaultValueSql("now()");
 
         entity.HasOne(d => d.JudicialProcess)
             .WithMany(p => p.LegalFees)
@@ -70,5 +40,7 @@ public class LegalFeeConfiguration : IEntityTypeConfiguration<LegalFee>
             .WithMany(p => p.LegalFees)
             .HasForeignKey(d => d.UserId)
             .HasConstraintName("fk_user_id");
+
+        entity.Ignore(e => e.LegalFeeInstallments);
     }
 }

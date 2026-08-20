@@ -8,15 +8,7 @@ public class LegalFeeEntityConfiguration : IEntityTypeConfiguration<LegalFeeEnti
 {
     public void Configure(EntityTypeBuilder<LegalFeeEntity> entity)
     {
-        entity.ToTable("legal_fee_entity");
-
         entity.HasKey(e => new { e.LegalFeeId, e.EntityId });
-
-        entity.Property(e => e.LegalFeeId)
-            .HasColumnName("legal_fee_id");
-
-        entity.Property(e => e.EntityId)
-            .HasColumnName("entity_id");
 
         entity.HasOne(e => e.Entity)
             .WithMany(e => e.LegalFeeEntities)

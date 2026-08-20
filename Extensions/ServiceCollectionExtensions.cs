@@ -13,6 +13,9 @@ namespace OctaPro.Extensions
             services.AddScoped<IEntityService, EntityService>();
             services.AddScoped<IJudicialProcessService, JudicialProcessService>();  
             services.AddScoped<ISettlementService, SettlementService>();  
+            services.AddScoped<ILegalFeeService, LegalFeeService>();
+            services.AddScoped<IInstallmentService, InstallmentService>();
+            services.AddScoped<ICorporationService, CorporationService>();
             
 
 

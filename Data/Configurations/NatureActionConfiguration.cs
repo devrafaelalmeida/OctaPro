@@ -11,24 +11,13 @@ public class NatureActionConfiguration : IEntityTypeConfiguration<NatureAction>
         entity.HasKey(e => e.Id)
               .HasName("nature_actions_pkey");
 
-        entity.ToTable("nature_actions");
-
         entity.Property(e => e.Id)
-            .UseIdentityAlwaysColumn()
-            .HasColumnName("id");
+            .UseIdentityAlwaysColumn();
 
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
-
-        entity.Property(e => e.Nature)
-            .HasMaxLength(50)
-            .HasColumnName("nature");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
+            .HasDefaultValueSql("now()");
     }
 }

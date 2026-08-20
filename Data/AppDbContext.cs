@@ -24,6 +24,8 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
 
     public virtual DbSet<Client> Clients { get; set; }
 
+    public virtual DbSet<Corporation> Corporations { get; set; }
+
     public virtual DbSet<EntityCompany> EntitiesCompanies { get; set; }
 
     public virtual DbSet<EntityIndividual> EntitiesIndividuals { get; set; }
@@ -46,7 +48,9 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
 
     public virtual DbSet<LegalFee> LegalFees { get; set; }
 
-    public virtual DbSet<LegalFeesInstallment> LegalFeesInstallments { get; set; }
+    public virtual DbSet<Installment> Installments { get; set; }
+
+    public virtual DbSet<LegalFeeInstallment> LegalFeeInstallments { get; set; }
 
     public virtual DbSet<Migration> Migrations { get; set; }
 
@@ -61,6 +65,8 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
     public virtual DbSet<StatusEntity> StatusEntities { get; set; }
 
     public virtual DbSet<StatusPayment> StatusPayments { get; set; }
+
+    public virtual DbSet<TypeInstallment> TypeInstallments { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

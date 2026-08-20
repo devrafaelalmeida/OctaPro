@@ -173,7 +173,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Key")
                         .HasName("cache_pkey");
 
-                    b.ToTable("cache", (string)null);
+                    b.ToTable("cache");
                 });
 
             modelBuilder.Entity("OctaPro.Models.CacheLock", b =>
@@ -196,7 +196,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Key")
                         .HasName("cache_locks_pkey");
 
-                    b.ToTable("cache_locks", (string)null);
+                    b.ToTable("cache_locks");
                 });
 
             modelBuilder.Entity("OctaPro.Models.Client", b =>
@@ -235,7 +235,143 @@ namespace OctaPro.Migrations
 
                     b.HasIndex("LawyerId");
 
-                    b.ToTable("clients", (string)null);
+                    b.ToTable("clients");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.Corporation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("Cnpj")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("character varying(14)")
+                        .HasColumnName("cnpj");
+
+                    b.Property<string>("Complement")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("complement");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("district");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<Guid>("IdPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id_public")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("Mobile")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("mobile");
+
+                    b.Property<string>("MunicipalRegistration")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("municipal_registration");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("number");
+
+                    b.Property<DateOnly>("OpeningDate")
+                        .HasColumnType("date")
+                        .HasColumnName("opening_date");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("state");
+
+                    b.Property<string>("StateRegistration")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("state_registration");
+
+                    b.Property<string>("Street")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("street");
+
+                    b.Property<string>("TaxRegime")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("tax_regime");
+
+                    b.Property<string>("TradeName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("trade_name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ZipCode")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("zip_code");
+
+                    b.HasKey("Id")
+                        .HasName("corporations_pkey");
+
+                    b.HasIndex(new[] { "IdPublic" }, "corporations_id_public_key")
+                        .IsUnique();
+
+                    b.ToTable("corporations");
                 });
 
             modelBuilder.Entity("OctaPro.Models.EntitiesRole", b =>
@@ -273,11 +409,10 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("entities_roles_pkey");
 
-                    b.HasIndex("Name")
-                        .IsUnique()
-                        .HasDatabaseName("entities_roles_name_key");
+                    b.HasIndex(new[] { "Name" }, "entities_roles_name_key")
+                        .IsUnique();
 
-                    b.ToTable("entities_roles", (string)null);
+                    b.ToTable("entities_roles");
                 });
 
             modelBuilder.Entity("OctaPro.Models.EntitiesRolesMap", b =>
@@ -332,7 +467,7 @@ namespace OctaPro.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_entity_role");
 
-                    b.ToTable("entities_roles_map", (string)null);
+                    b.ToTable("entities_roles_map");
                 });
 
             modelBuilder.Entity("OctaPro.Models.Entity", b =>
@@ -374,11 +509,10 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("entities_pkey");
 
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("entities_id_public_key");
+                    b.HasIndex(new[] { "IdPublic" }, "entities_id_public_key")
+                        .IsUnique();
 
-                    b.ToTable("entities", (string)null);
+                    b.ToTable("entities");
                 });
 
             modelBuilder.Entity("OctaPro.Models.EntityCompany", b =>
@@ -473,7 +607,7 @@ namespace OctaPro.Migrations
                     b.HasIndex("EntityId")
                         .IsUnique();
 
-                    b.ToTable("entities_company", (string)null);
+                    b.ToTable("entities_company");
                 });
 
             modelBuilder.Entity("OctaPro.Models.EntityIndividual", b =>
@@ -573,7 +707,99 @@ namespace OctaPro.Migrations
                     b.HasIndex("EntityId")
                         .IsUnique();
 
-                    b.ToTable("entities_individual", (string)null);
+                    b.ToTable("entities_individual");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.Installment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("Id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AdjustedTotal")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("AdjustedTotal");
+
+                    b.Property<string>("Competence")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Competence");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
+
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("Document");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date")
+                        .HasColumnName("DueDate");
+
+                    b.Property<Guid>("IdPublic")
+                        .HasColumnType("uuid")
+                        .HasColumnName("IdPublic");
+
+                    b.Property<decimal?>("LateFine")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("LateFine");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("Note");
+
+                    b.Property<decimal?>("PaidAmount")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("paid_amount");
+
+                    b.Property<DateOnly?>("PaymentDate")
+                        .HasColumnType("date")
+                        .HasColumnName("PaymentDate");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("reference_id");
+
+                    b.Property<int>("StatusPaymentId")
+                        .HasColumnType("integer")
+                        .HasColumnName("StatusPaymentId");
+
+                    b.Property<int>("TypeId")
+                        .HasColumnType("integer")
+                        .HasColumnName("type_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("UpdatedAt");
+
+                    b.Property<decimal?>("ValueInstallment")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("ValueInstallment");
+
+                    b.HasKey("Id")
+                        .HasName("PK_installments");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("installments");
+
+                    b.HasDiscriminator().HasValue("Installment");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("OctaPro.Models.Job", b =>
@@ -615,10 +841,9 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("jobs_pkey");
 
-                    b.HasIndex("Queue")
-                        .HasDatabaseName("jobs_queue_index");
+                    b.HasIndex(new[] { "Queue" }, "jobs_queue_index");
 
-                    b.ToTable("jobs", (string)null);
+                    b.ToTable("jobs");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JobBatch", b =>
@@ -670,7 +895,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("job_batches_pkey");
 
-                    b.ToTable("job_batches", (string)null);
+                    b.ToTable("job_batches");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialAction", b =>
@@ -709,7 +934,7 @@ namespace OctaPro.Migrations
 
                     b.HasIndex("NatureActionId");
 
-                    b.ToTable("judicials_actions", (string)null);
+                    b.ToTable("judicials_actions");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialProcess", b =>
@@ -731,6 +956,10 @@ namespace OctaPro.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("description");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empresa_id");
 
                     b.Property<Guid>("IdPublic")
                         .HasColumnType("uuid")
@@ -779,21 +1008,19 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("judicial_processes_pkey");
 
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("judicial_processes_id_public_key");
-
                     b.HasIndex("JudicialActionId");
 
                     b.HasIndex("NatureActionId");
 
-                    b.HasIndex("ProcessNumber")
-                        .IsUnique()
-                        .HasDatabaseName("unique_process_number");
-
                     b.HasIndex("UserId");
 
-                    b.ToTable("judicial_processes", (string)null);
+                    b.HasIndex(new[] { "IdPublic" }, "judicial_processes_id_public_key")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "ProcessNumber" }, "unique_process_number")
+                        .IsUnique();
+
+                    b.ToTable("judicial_processes");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialProcessEntity", b =>
@@ -810,7 +1037,7 @@ namespace OctaPro.Migrations
 
                     b.HasIndex("EntityId");
 
-                    b.ToTable("judicial_process_entity", (string)null);
+                    b.ToTable("judicial_process_entity");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialProcessUser", b =>
@@ -858,7 +1085,7 @@ namespace OctaPro.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_process_user");
 
-                    b.ToTable("judicial_process_user", (string)null);
+                    b.ToTable("judicial_process_user");
                 });
 
             modelBuilder.Entity("OctaPro.Models.LegalFee", b =>
@@ -882,6 +1109,10 @@ namespace OctaPro.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empresa_id");
 
                     b.Property<Guid>("IdPublic")
                         .HasColumnType("uuid")
@@ -919,17 +1150,16 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("legal_fees_pkey");
 
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("legal_fees_id_public_key");
-
                     b.HasIndex("JudicialProcessId");
 
                     b.HasIndex("StatusPaymentId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("legal_fees", (string)null);
+                    b.HasIndex(new[] { "IdPublic" }, "legal_fees_id_public_key")
+                        .IsUnique();
+
+                    b.ToTable("legal_fees");
                 });
 
             modelBuilder.Entity("OctaPro.Models.LegalFeeEntity", b =>
@@ -946,79 +1176,7 @@ namespace OctaPro.Migrations
 
                     b.HasIndex("EntityId");
 
-                    b.ToTable("legal_fee_entity", (string)null);
-                });
-
-            modelBuilder.Entity("OctaPro.Models.LegalFeesInstallment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<int>("CurrentInstallment")
-                        .HasColumnType("integer")
-                        .HasColumnName("current_installment");
-
-                    b.Property<DateOnly?>("DueDate")
-                        .HasColumnType("date")
-                        .HasColumnName("due_date");
-
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("entity_id");
-
-                    b.Property<Guid>("IdPublic")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id_public");
-
-                    b.Property<int>("LegalFeeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("legal_fee_id");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("note");
-
-                    b.Property<DateOnly?>("PaymentDate")
-                        .HasColumnType("date")
-                        .HasColumnName("payment_date");
-
-                    b.Property<int>("StatusPaymentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("status_payment_id");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<decimal>("ValueInstallment")
-                        .HasColumnType("numeric")
-                        .HasColumnName("value_installment");
-
-                    b.HasKey("Id")
-                        .HasName("installments_legal_fees_pkey");
-
-                    b.HasIndex("EntityId");
-
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("installments_legal_fees_id_public_key");
-
-                    b.HasIndex("StatusPaymentId");
-
-                    b.ToTable("legal_fees_installments", (string)null);
+                    b.ToTable("legal_fee_entity");
                 });
 
             modelBuilder.Entity("OctaPro.Models.Migration", b =>
@@ -1043,7 +1201,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("migrations_pkey");
 
-                    b.ToTable("migrations", (string)null);
+                    b.ToTable("migrations");
                 });
 
             modelBuilder.Entity("OctaPro.Models.NatureAction", b =>
@@ -1076,7 +1234,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("nature_actions_pkey");
 
-                    b.ToTable("nature_actions", (string)null);
+                    b.ToTable("nature_actions");
                 });
 
             modelBuilder.Entity("OctaPro.Models.Session", b =>
@@ -1111,23 +1269,21 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("sessions_pkey");
 
-                    b.HasIndex("LastActivity")
-                        .HasDatabaseName("sessions_last_activity_index");
+                    b.HasIndex(new[] { "LastActivity" }, "sessions_last_activity_index");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("sessions_user_id_index");
+                    b.HasIndex(new[] { "UserId" }, "sessions_user_id_index");
 
-                    b.ToTable("sessions", (string)null);
+                    b.ToTable("sessions");
                 });
 
             modelBuilder.Entity("OctaPro.Models.Settlement", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("bigint")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(10, 2)
@@ -1139,6 +1295,10 @@ namespace OctaPro.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empresa_id");
 
                     b.Property<Guid>("IdPublic")
                         .HasColumnType("uuid")
@@ -1174,73 +1334,16 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("installments_settlement_pkey");
 
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("settlement_id_public_key");
-
                     b.HasIndex("JudicialProcessId");
 
                     b.HasIndex("StatusPaymentId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("settlement", (string)null);
-                });
+                    b.HasIndex(new[] { "IdPublic" }, "settlement_id_public_key")
+                        .IsUnique();
 
-            modelBuilder.Entity("OctaPro.Models.SettlementInstallment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Competence")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<string>("Document")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly?>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<Guid>("IdPublic")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly?>("PaymentDate")
-                        .HasColumnType("date");
-
-                    b.Property<decimal?>("PaidAmount")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)")
-                        .HasColumnName("paid_amount");
-
-                    b.Property<int?>("SettlementId")
-                        .HasColumnType("integer")
-                        .HasColumnName("settlement_id");
-
-                    b.Property<int>("StatusPaymentId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamptz");
-
-                    b.Property<decimal?>("ValueInstallment")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SettlementId");
-
-                    b.ToTable("settlement_installments");
+                    b.ToTable("settlement");
                 });
 
             modelBuilder.Entity("OctaPro.Models.StatusEntity", b =>
@@ -1273,7 +1376,7 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("status_entities_pkey");
 
-                    b.ToTable("status_entities", (string)null);
+                    b.ToTable("status_entities");
                 });
 
             modelBuilder.Entity("OctaPro.Models.StatusPayment", b =>
@@ -1306,7 +1409,37 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("status_payment_pkey");
 
-                    b.ToTable("status_payment", (string)null);
+                    b.ToTable("status_payment");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.TypeInstallment", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("description");
+
+                    b.HasKey("Id")
+                        .HasName("PK_type_installments");
+
+                    b.ToTable("type_installments");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Acordo"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Honorário"
+                        });
                 });
 
             modelBuilder.Entity("OctaPro.Models.User", b =>
@@ -1336,6 +1469,10 @@ namespace OctaPro.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("EmpresaId")
+                        .HasColumnType("integer")
+                        .HasColumnName("empresa_id");
 
                     b.Property<Guid>("IdPublic")
                         .HasColumnType("uuid")
@@ -1386,14 +1523,6 @@ namespace OctaPro.Migrations
                     b.HasKey("Id")
                         .HasName("users_pkey");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("users_email_unique");
-
-                    b.HasIndex("IdPublic")
-                        .IsUnique()
-                        .HasDatabaseName("users_id_public_key");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -1401,7 +1530,31 @@ namespace OctaPro.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
+                    b.HasIndex(new[] { "Email" }, "users_email_unique")
+                        .IsUnique();
+
+                    b.HasIndex(new[] { "IdPublic" }, "users_id_public_key")
+                        .IsUnique();
+
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("OctaPro.Models.LegalFeeInstallment", b =>
+                {
+                    b.HasBaseType("OctaPro.Models.Installment");
+
+                    b.ToTable("installments");
+
+                    b.HasDiscriminator().HasValue("LegalFee");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.SettlementInstallment", b =>
+                {
+                    b.HasBaseType("OctaPro.Models.Installment");
+
+                    b.ToTable("installments");
+
+                    b.HasDiscriminator().HasValue("Settlement");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
@@ -1517,6 +1670,18 @@ namespace OctaPro.Migrations
                         .HasConstraintName("fk_entity_individual");
 
                     b.Navigation("Entity");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.Installment", b =>
+                {
+                    b.HasOne("OctaPro.Models.TypeInstallment", "TypeInstallment")
+                        .WithMany("Installments")
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_installments_type_installments_type_id");
+
+                    b.Navigation("TypeInstallment");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialAction", b =>
@@ -1650,26 +1815,6 @@ namespace OctaPro.Migrations
                     b.Navigation("LegalFee");
                 });
 
-            modelBuilder.Entity("OctaPro.Models.LegalFeesInstallment", b =>
-                {
-                    b.HasOne("OctaPro.Models.Entity", "Entity")
-                        .WithMany("LegalFeesInstallments")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_legal_fee_entity");
-
-                    b.HasOne("OctaPro.Models.StatusPayment", "StatusPayment")
-                        .WithMany()
-                        .HasForeignKey("StatusPaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("StatusPayment");
-                });
-
             modelBuilder.Entity("OctaPro.Models.Settlement", b =>
                 {
                     b.HasOne("OctaPro.Models.JudicialProcess", "JudicialProcess")
@@ -1699,16 +1844,6 @@ namespace OctaPro.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OctaPro.Models.SettlementInstallment", b =>
-                {
-                    b.HasOne("OctaPro.Models.Settlement", "Settlement")
-                        .WithMany("SettlementInstallments")
-                        .HasForeignKey("SettlementId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Settlement");
-                });
-
             modelBuilder.Entity("OctaPro.Models.EntitiesRole", b =>
                 {
                     b.Navigation("EntitiesRolesMaps");
@@ -1723,8 +1858,6 @@ namespace OctaPro.Migrations
                     b.Navigation("JudicialProcessEntities");
 
                     b.Navigation("LegalFeeEntities");
-
-                    b.Navigation("LegalFeesInstallments");
                 });
 
             modelBuilder.Entity("OctaPro.Models.JudicialProcess", b =>
@@ -1748,9 +1881,9 @@ namespace OctaPro.Migrations
                     b.Navigation("JudicialProcesses");
                 });
 
-            modelBuilder.Entity("OctaPro.Models.Settlement", b =>
+            modelBuilder.Entity("OctaPro.Models.TypeInstallment", b =>
                 {
-                    b.Navigation("SettlementInstallments");
+                    b.Navigation("Installments");
                 });
 
             modelBuilder.Entity("OctaPro.Models.User", b =>

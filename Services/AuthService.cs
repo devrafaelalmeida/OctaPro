@@ -34,12 +34,6 @@ namespace OctaPro.Services
                     CreatedAt = DateTime.UtcNow,
                     IdPublic = Guid.NewGuid()
                 };
-                
-                foreach (var prop in typeof(User).GetProperties())
-                {
-                    var value = prop.GetValue(user);
-                    Console.WriteLine($"{prop.Name} = {value}");
-                }
                 var result = await _userManager.CreateAsync(user, password);
 
                 if (!result.Succeeded)
@@ -56,8 +50,8 @@ namespace OctaPro.Services
             if (user == null)
                 return null;
 
-            var valid = await _userManager.CheckPasswordAsync(user, password);
-            if (!valid)
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+            if (!result.Succeeded)
                 return null;
 
             return await _tokenService.GenerateTokenAsync(user);

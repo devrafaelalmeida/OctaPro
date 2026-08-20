@@ -11,34 +11,15 @@ public class EntityConfiguration : IEntityTypeConfiguration<Entity>
         entity.HasKey(e => e.Id)
               .HasName("entities_pkey");
 
-        entity.ToTable("entities");
-
-        entity.HasIndex(e => e.IdPublic)
-              .IsUnique()
-              .HasDatabaseName("entities_id_public_key");
-
-        entity.Property(e => e.Id)
-            .HasColumnName("id");
-
         entity.Property(e => e.CreatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("created_at");
+            .HasDefaultValueSql("now()");
 
         entity.Property(e => e.EntityType)
-            .HasMaxLength(2)
-            .IsFixedLength()
-            .HasColumnName("entity_type");
-
-        entity.Property(e => e.IdPublic)
-            .HasColumnName("id_public");
-
-        entity.Property(e => e.StatusId)
-            .HasColumnName("status_id");
+            .IsFixedLength();
 
         entity.Property(e => e.UpdatedAt)
-            .HasDefaultValueSql("now()")
-            .HasColumnType("timestamp with time zone")
-            .HasColumnName("updated_at");
+            .HasDefaultValueSql("now()");
+
+        entity.Ignore(e => e.LegalFeeInstallments);
     }
 }

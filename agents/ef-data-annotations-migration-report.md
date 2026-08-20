@@ -1,0 +1,41 @@
+# Relatório: Fluent API para Data Annotations
+
+## Estratégia
+
+- Migrar para Data Annotations: `[Table]`, `[Column]`, `[Key]`, `[MaxLength]`, `[StringLength]`, `[Precision]`, `[ForeignKey]`, `[NotMapped]` e `[DatabaseGenerated]`.
+- Manter em Fluent API: nomes explícitos de constraints (`HasName`, `HasConstraintName`), defaults (`HasDefaultValue`, `HasDefaultValueSql`), TPH (`HasDiscriminator`), `HasData`, índices compostos, `Ignore`, `OnDelete(DeleteBehavior.Restrict)` e casos em que a annotation é incompleta para preservar schema.
+- Objetivo de validação: migration posterior sem alterações de schema.
+
+## Inventário por entidade
+
+- `Cache`: tabela `cache`; PK `Key`; colunas `key`, `value`, `expiration`; `Key` max 255. Migrável, mantendo nome da PK em Fluent API.
+- `CacheLock`: tabela `cache_locks`; PK `Key`; colunas `key`, `owner`, `expiration`; strings max 255. Migrável, mantendo nome da PK em Fluent API.
+- `Client`: tabela `clients`; PK `Id`; colunas `id`, `created_at`, `updated_at`, `lawyer_id`, `entity_id`; defaults `now()` em datas; FK `LawyerId -> User.Clients` com constraint `fk_client_lawyer`. Annotations para tabela/colunas/FK; defaults e nome da constraint ficam em Fluent API.
+- `EntitiesRole`: tabela `entities_roles`; PK `Id` identity always; índice único `Name`; colunas `id`, `name`, `description`, `created_at`, `updated_at`; defaults `now()`. Annotations para tabela/colunas/tamanhos; identity, índice nomeado e defaults ficam em Fluent API.
+- `EntitiesRolesMap`: tabela `entities_roles_map`; PK `Id`; índice composto único `(EntityId, RoleId)`; colunas `id`, `entity_id`, `role_id`, `assigned_at`, `assigned_by`, `notes`, `created_at`, `updated_at`; delete restrict em `Role`. Annotations para tabela/colunas/FK; índice composto, defaults, delete e constraint ficam em Fluent API.
+- `Entity`: tabela `entities`; PK `Id`; índice único `IdPublic`; colunas `id`, `entity_type`, `status_id`, `created_at`, `updated_at`, `id_public`; `EntityType` max 2/fixed; `LegalFeeInstallments` ignorado. Annotations para tabela/colunas/tamanho; índice, defaults e ignore ficam em Fluent API.
+- `EntityCompany`: tabela `entities_company`; PK `Id`; colunas `id`, `entity_id`, `cnpj`, `corporate_name`, `email`, `mobile`, `phone`, `trade_name`, `created_at`, `updated_at`; FK 1:1 `EntityId`. Annotations para tabela/colunas/tamanhos/FK; defaults e constraint ficam em Fluent API.
+- `EntityIndividual`: tabela `entities_individual`; PK `Id`; colunas `id`, `entity_id`, `address`, `birth_date`, `cpf`, `email`, `mobile`, `name`, `phone`, `rg`, `created_at`, `updated_at`; FK 1:1 `EntityId`. Annotations para tabela/colunas/tamanhos/FK; defaults e constraint ficam em Fluent API.
+- `Installment`: tabela `installments`; PK `Id`; TPH por `Discriminator`; colunas `Id`, `referency_id`, `type_id`, `Document`, `ValueInstallment`, `paid_amount`, `StatusPaymentId`, `PaymentDate`, `DueDate`, `Competence`, `CreatedAt`, `UpdatedAt`, `Note`, `IdPublic`; precision 10,2; FK `TypeId`. Annotations para tabela/colunas/precision/FK; TPH e constraint ficam em Fluent API.
+- `Job`: tabela `jobs`; PK `Id`; índice `Queue`; colunas `id`, `queue`, `payload`, `attempts`, `reserved_at`, `available_at`, `created_at`; `Queue` max 255. Annotations para tabela/colunas/tamanho; índice e PK name ficam em Fluent API.
+- `JobBatch`: tabela `job_batches`; PK string `Id`; colunas `id`, `name`, `total_jobs`, `pending_jobs`, `failed_jobs`, `failed_job_ids`, `options`, `cancelled_at`, `created_at`, `finished_at`; `Id` e `Name` max 255. Migrável, mantendo nome da PK em Fluent API.
+- `JudicialAction`: tabela `judicials_actions`; PK `Id` identity always; colunas `id`, `judicial_action`, `nature_action_id`, `created_at`, `updated_at`; FK `NatureActionId`. Annotations para tabela/colunas/tamanho/FK; identity, defaults e constraint ficam em Fluent API.
+- `JudicialProcess`: tabela `judicial_processes`; PK `Id` identity always; índices únicos `IdPublic` e `ProcessNumber`; colunas `id`, `process_number`, `initial_date`, `respondent`, `description`, `nature_action_id`, `judicial_action_id`, `is_archived`, `created_at`, `updated_at`, `id_public`, `user_id`; defaults `now()` e `false`; FK `NatureActionId`. Annotations para tabela/colunas/tamanhos/FK; índices, identity, defaults e constraint ficam em Fluent API.
+- `JudicialProcessEntity`: join table `judicial_process_entity`; PK composta `(JudicialProcessId, EntityId)`; colunas `judicial_process_id`, `entity_id`; duas FKs. Tabela/colunas/FKs podem ir para annotations, PK composta e constraint names ficam em Fluent API.
+- `JudicialProcessUser`: tabela `judicial_process_user`; PK `Id`; índice composto único `(JudicialProcessId, UserId)`; colunas `id`, `judicial_process_id`, `user_id`, `access_level`, `created_at`, `updated_at`; default `'private'` e `now()`; FK `UserId`. Annotations para tabela/colunas/tamanho/FK; índice composto, defaults e constraint ficam em Fluent API.
+- `LegalFee`: tabela `legal_fees`; PK `Id` identity always; índice único `IdPublic`; colunas `id`, `amount`, `quantity_installment`, `judicial_process_id`, `status_payment_id`, `note`, `created_at`, `updated_at`, `id_public`, `user_id`; defaults; FKs `JudicialProcessId` e `UserId`; `LegalFeeInstallments` ignorado. Annotations para tabela/colunas/precision/tamanho/FKs; índice, identity, defaults, constraints e ignore ficam em Fluent API.
+- `LegalFeeEntity`: join table `legal_fee_entity`; PK composta `(LegalFeeId, EntityId)`; colunas `legal_fee_id`, `entity_id`; duas FKs. Tabela/colunas/FKs podem ir para annotations, PK composta e constraint names ficam em Fluent API.
+- `LegalFeeInstallment`: subtipo TPH de `Installment`; `LegalFee` ignorado atualmente. Manter ignore em Fluent API.
+- `Migration`: tabela `migrations`; PK `Id`; colunas `id`, `migration`, `batch`; `Migration1` max 255. Migrável, mantendo nome da PK em Fluent API.
+- `NatureAction`: tabela `nature_actions`; PK `Id` identity always; colunas `id`, `nature`, `created_at`, `updated_at`; `Nature` max 50; defaults. Annotations para tabela/colunas/tamanho; identity/defaults e PK name ficam em Fluent API.
+- `Session`: tabela `sessions`; PK string `Id`; índices `LastActivity` e `UserId`; colunas `id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`; tamanhos. Annotations para tabela/colunas/tamanhos; índices e PK name ficam em Fluent API.
+- `Settlement`: tabela `settlement`; PK `Id` identity always; índice único `IdPublic`; colunas `id`, `amount`, `quantity_installment`, `judicial_process_id`, `status_payment_id`, `note`, `created_at`, `updated_at`, `id_public`, `user_id`; FKs `JudicialProcessId` e `UserId`; propriedades `StatusPaymentEnum`/`FirstDueDate` não mapeadas. Annotations para tabela/colunas/precision/tamanho/FKs/NotMapped; índice, identity, defaults e constraints ficam em Fluent API.
+- `SettlementInstallment`: subtipo TPH de `Installment`; FK `ReferencyId -> Settlement.SettlementInstallments`; cascade explícito. Manter relacionamento em Fluent API por usar FK compartilhada/polimórfica e delete explícito.
+- `StatusEntity`: tabela `status_entities`; PK `Id` identity always; colunas `id`, `description`, `created_at`, `updated_at`; `Description` max 30; defaults. Annotations para tabela/colunas/tamanho; identity/defaults e PK name ficam em Fluent API.
+- `StatusPayment`: tabela `status_payment`; PK `Id` identity always; colunas `id`, `description`, `created_at`, `updated_at`; `Description` max 30; defaults. Annotations para tabela/colunas/tamanho; identity/defaults e PK name ficam em Fluent API.
+- `TypeInstallment`: tabela `type_installments`; PK `Id` sem geração; colunas `id`, `description`; seed `Acordo`/`Honorario`; `Description` max 50. Annotations para tabela/colunas/tamanho; `ValueGeneratedNever`, seed e PK name ficam em Fluent API.
+- `User`: tabela `users`; PK `Id`; índices únicos `Email` e `IdPublic`; colunas `id`, `email`, `profile_photo_path`, `created_at`, `updated_at`, `id_public`; tipos timestamp sem timezone em datas. Annotations para tabela/colunas/tamanhos; índices, tipo especial de data e PK name ficam em Fluent API.
+
+## Configurações comentadas
+
+`FailedJobConfiguration`, `PasswordResetTokenConfiguration` e `PersonalAccessTokenConfiguration` estão completamente comentadas e não participam de `ApplyConfigurationsFromAssembly`.

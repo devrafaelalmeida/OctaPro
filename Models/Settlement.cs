@@ -1,20 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using OctaPro.Enums;
 
 namespace OctaPro.Models;
 
+[Index(nameof(IdPublic), IsUnique = true, Name = "settlement_id_public_key")]
+[Table("settlement")]
 public partial class Settlement
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id { get; set; }
 
+    [Precision(10, 2)]
+    [Column("amount")]
     public decimal Amount { get; set; }
 
+    [Column("quantity_installment")]
     public int QuantityInstallment { get; set; }
 
+    [Column("judicial_process_id")]
     public long JudicialProcessId { get; set; }
 
+    [Column("status_payment_id")]
     public int StatusPaymentId { get; set; }
 
     [NotMapped]
@@ -27,20 +39,32 @@ public partial class Settlement
     [NotMapped]
     public DateOnly? FirstDueDate { get; set; }
 
+    [Column("created_at", TypeName = "timestamp with time zone")]
     public DateTime CreatedAt { get; set; }
 
+    [Column("updated_at", TypeName = "timestamp with time zone")]
     public DateTime UpdatedAt { get; set; }
 
+    [MaxLength(255)]
+    [Column("note")]
     public string? Note { get; set; }
 
+    [Column("id_public")]
     public Guid IdPublic { get; set; }
 
+    [Column("user_id")]
     public long UserId { get; set; }
 
+    [Column("empresa_id")]
+    public int EmpresaId { get; set; }
+
+    [ForeignKey(nameof(JudicialProcessId))]
     public virtual JudicialProcess JudicialProcess { get; set; } = null!;
 
+    [ForeignKey(nameof(StatusPaymentId))]
     public virtual StatusPayment StatusPayment { get; set; } = null!;
 
+    [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = null!;
 
     public virtual ICollection<SettlementInstallment> SettlementInstallments { get; set; } = new List<SettlementInstallment>();
@@ -65,9 +89,9 @@ public partial class Settlement
         {
             var dueDate = FirstDueDate.Value.AddMonths(i + 1);
 
-            installments.Add(new SettlementInstallment
+            var installment = new SettlementInstallment
             {
-                Settlement = this,
+                ReferenceId = Id,
                 IdPublic = Guid.NewGuid(),
                 Document = $"{(i + 1):00000}/{QuantityInstallment}",
                 ValueInstallment = installmentValue,
@@ -76,7 +100,10 @@ public partial class Settlement
                 StatusPaymentId = StatusPaymentEnum.Pending,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
-            });
+            };
+
+            installment.CalculateLateFine();
+            installments.Add(installment);
         }
 
         return installments;
@@ -92,7 +119,7 @@ public partial class Settlement
 
         var installment = new SettlementInstallment
         {
-            Settlement = this,
+            ReferenceId = Id,
             IdPublic = Guid.NewGuid(),
             Document = $"{installmentNumber:00000}/1",
             ValueInstallment = valueInstallment,
@@ -103,6 +130,7 @@ public partial class Settlement
             UpdatedAt = now
         };
 
+        installment.CalculateLateFine();
         QuantityInstallment = installmentNumber;
 
         return installment;

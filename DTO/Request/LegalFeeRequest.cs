@@ -1,22 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace OctaPro.DTO.Request
 {
     public class LegalFeeRequest
     {
+        public Guid ProcessNumberId { get; set; }
 
-        public string ProcessNumber { get; set; } = null!;
+        public string? ProcessNumber { get; set; }
 
-        // public decimal Amount { get; set; }
+        public decimal Amount { get; set; }
 
-        // public int QuantityInstallment { get; set; }
+        public int QuantityInstallment { get; set; }
 
-        public int StatusPaymentId { get; set; }
+        public DateOnly FirstDueDate { get; set; }
 
         public string? Note { get; set; }
-
     }
 }
