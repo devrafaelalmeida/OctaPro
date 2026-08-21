@@ -55,8 +55,8 @@ public partial class LegalFee
     [Column("user_id")]
     public long UserId { get; set; }
 
-    [Column("empresa_id")]
-    public int EmpresaId { get; set; }
+    [Column("corporation_id")]
+    public int CorporationId { get; set; }
 
     [ForeignKey(nameof(JudicialProcessId))]
     public virtual JudicialProcess JudicialProcess { get; set; } = null!;

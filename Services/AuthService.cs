@@ -25,25 +25,6 @@ namespace OctaPro.Services
             _tokenService = tokenService;
         }
 
-        public async Task<IdentityResult> RegisterAsync(string email, string password)
-        {
-                var user = new User
-                {
-                    UserName = email,
-                    Email = email,
-                    CreatedAt = DateTime.UtcNow,
-                    IdPublic = Guid.NewGuid()
-                };
-                var result = await _userManager.CreateAsync(user, password);
-
-                if (!result.Succeeded)
-                    return result;
-
-                await _userManager.AddToRoleAsync(user, "Common");
-
-                return result;
-        }
-
         public async Task<string?> LoginAsync(string email, string password)
         {
             var user = await _userManager.FindByEmailAsync(email);

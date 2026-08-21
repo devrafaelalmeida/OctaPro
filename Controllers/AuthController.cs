@@ -16,18 +16,6 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    [Authorize(Roles = "Admin,Manager")]
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest request)
-    {
-        var result = await _authService.RegisterAsync(request.Email, request.Password);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return StatusCode(201);
-    }
-
     [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)

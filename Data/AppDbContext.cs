@@ -66,6 +66,8 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
 
     public virtual DbSet<StatusPayment> StatusPayments { get; set; }
 
+    public virtual DbSet<StatusReference> StatusReferences { get; set; }
+
     public virtual DbSet<TypeInstallment> TypeInstallments { get; set; }
 
 

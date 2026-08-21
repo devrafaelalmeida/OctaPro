@@ -200,7 +200,7 @@ namespace OctaPro.Services
                 NatureActionId = request.NatureActionId,
                 JudicialActionId = request.JudicialActionId,
                 UserId = userLogged.Id,
-                EmpresaId = userLogged.EmpresaId,
+                CorporationId = userLogged.CorporationId,
                 IdPublic = Guid.NewGuid()
             };
 

@@ -25,8 +25,43 @@ public partial class User : IdentityUser<long>
     [Column("id_public")]
     public Guid IdPublic { get; set; }
 
-    [Column("empresa_id")]
-    public int EmpresaId { get; set; }
+    [Column("corporation_id")]
+    public int CorporationId { get; set; }
+
+    [MaxLength(11)]
+    [Column("cpf")]
+    public string? CPF { get; set; }
+
+    [Column("birth_date")]
+    public DateOnly? BirthDate { get; set; }
+
+    [MaxLength(8)]
+    [Column("cep")]
+    public string? CEP { get; set; }
+
+    [MaxLength(2)]
+    [Column("uf")]
+    public string? UF { get; set; }
+
+    [MaxLength(255)]
+    [Column("city")]
+    public string? City { get; set; }
+
+    [MaxLength(255)]
+    [Column("address")]
+    public string? Address { get; set; }
+
+    [MaxLength(20)]
+    [Column("number_house")]
+    public string? NumberHouse { get; set; }
+
+    [MaxLength(200)]
+    [Column("complement")]
+    public string? Complement { get; set; }
+
+    [MaxLength(255)]
+    [Column("neithborhood")]
+    public string? Neithborhood { get; set; }
 
     public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
 

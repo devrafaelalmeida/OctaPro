@@ -54,8 +54,8 @@ public partial class JudicialProcess
     [Column("user_id")]
     public long UserId { get; set; }
 
-    [Column("empresa_id")]
-    public int EmpresaId { get; set; }
+    [Column("corporation_id")]
+    public int CorporationId { get; set; }
 
     public ICollection<JudicialProcessEntity> JudicialProcessEntities { get; set; } = new List<JudicialProcessEntity>();
     public ICollection<LegalFee> LegalFees { get; set; } = new List<LegalFee>();

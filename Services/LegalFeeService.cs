@@ -99,7 +99,7 @@ namespace OctaPro.Services
                 QuantityInstallment = request.QuantityInstallment,
                 Note = request.Note,
                 UserId = userLogged.Id,
-                EmpresaId = userLogged.EmpresaId,
+                CorporationId = userLogged.CorporationId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 StatusPaymentEnum = StatusPaymentEnum.Pending,
