@@ -1,0 +1,19 @@
+{
+    "name": "OctaPro dev-env",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "dev-env",
+    "workspaceFolder": "/app/backend",
+    "shutdownAction": "none",
+    "overrideCommand": false,
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "dotnet.defaultSolution": "OctaPro.sln"
+            },
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.csdevkit"
+            ]
+        }
+    }
+}

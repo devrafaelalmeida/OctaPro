@@ -3,11 +3,17 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet",
+            "command": "docker",
             "type": "process",
             "args": [
+                "compose",
+                "exec",
+                "-w",
+                "/app/backend",
+                "dev-env",
+                "dotnet",
                 "build",
-                "${workspaceFolder}/OctaPro.sln",
+                "OctaPro.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -15,11 +21,17 @@
         },
         {
             "label": "publish",
-            "command": "dotnet",
+            "command": "docker",
             "type": "process",
             "args": [
+                "compose",
+                "exec",
+                "-w",
+                "/app/backend",
+                "dev-env",
+                "dotnet",
                 "publish",
-                "${workspaceFolder}/OctaPro.sln",
+                "OctaPro.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -27,17 +39,23 @@
         },
         {
             "label": "watch",
-            "command": "dotnet",
+            "command": "docker",
             "type": "process",
             "args": [
+                "compose",
+                "exec",
+                "-w",
+                "/app/backend",
+                "dev-env",
+                "dotnet",
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/OctaPro.csproj",
+                "OctaPro.csproj",
                 "--no-hot-reload"
             ],
             "isBackground": true,
-            "problemMatcher": {            // <-- substituído por objeto completo
+            "problemMatcher": {
                 "owner": "custom",
                 "pattern": {
                     "regexp": "^.*$",
@@ -46,7 +64,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": "^.*dotnet watch.*",
-                    "endsPattern": "^.*Now listening on:.*$"   // sinaliza que o servidor subiu
+                    "endsPattern": "^.*Now listening on:.*$"
                 }
             }
         }
