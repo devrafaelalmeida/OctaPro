@@ -30,8 +30,14 @@ public partial class Entity
     [Column("id_public")]
     public Guid IdPublic { get; set; }
 
+    [Column("corporation_id")]
+    public long CorporationId { get; set; }
+
     public virtual EntityIndividual? EntityIndividual { get; set; }
     public virtual EntityCompany? EntityCompany { get; set; }
+
+    [ForeignKey(nameof(CorporationId))]
+    public virtual Corporation Corporation { get; set; } = null!;
 
     [NotMapped]
     public virtual ICollection<LegalFeeInstallment> LegalFeeInstallments { get; set; } = new List<LegalFeeInstallment>();

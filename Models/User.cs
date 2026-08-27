@@ -26,7 +26,7 @@ public partial class User : IdentityUser<long>
     public Guid IdPublic { get; set; }
 
     [Column("corporation_id")]
-    public int CorporationId { get; set; }
+    public long CorporationId { get; set; }
 
     [MaxLength(11)]
     [Column("cpf")]

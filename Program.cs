@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using OctaPro.Authorization;
 using OctaPro.Configurations;
 using OctaPro.Data;
 using OctaPro.Data.Seeds;
@@ -65,12 +67,21 @@ builder.Services.AddTransient<IEmailSender<User>, DummyEmailSender>();
 builder.Services.AddApplicationServices();
 
 builder.Services.AddJwtConfiguration(builder.Configuration);
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in Permissions.All)
+    {
+        options.AddPolicy(permission, policy =>
+            policy.Requirements.Add(new PermissionRequirement(permission)));
+    }
+});
 builder.Services.AddSwaggerConfiguration();
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 // ─── Build ──────────────────────────────────────────────────
 var app = builder.Build();
@@ -92,8 +103,12 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider
         .GetRequiredService<RoleManager<IdentityRole<long>>>();
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<AppDbContext>();
 
+    await CorporationSeeder.SeedInitialCorporationAsync(dbContext);
     await RoleSeeder.SeedRolesAsync(roleManager);
+    await PermissionSeeder.SeedPermissionsAsync(dbContext);
 }
 
 app.MapControllers();

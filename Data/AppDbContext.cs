@@ -56,6 +56,12 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
 
     public virtual DbSet<NatureAction> NatureActions { get; set; }
 
+    public virtual DbSet<Permission> Permissions { get; set; }
+
+    public virtual DbSet<RolePermission> RolePermissions { get; set; }
+
+    public virtual DbSet<RevokedToken> RevokedTokens { get; set; }
+
     public virtual DbSet<Session> Sessions { get; set; }
 
     public virtual DbSet<Settlement> Settlements { get; set; }
@@ -69,6 +75,8 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<long>, 
     public virtual DbSet<StatusReference> StatusReferences { get; set; }
 
     public virtual DbSet<TypeInstallment> TypeInstallments { get; set; }
+
+    public virtual DbSet<UserPermission> UserPermissions { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

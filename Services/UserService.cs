@@ -13,16 +13,24 @@ public class UserService : IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UserService(UserManager<User> userManager, AppDbContext context)
+    public UserService(
+        UserManager<User> userManager,
+        AppDbContext context,
+        ICurrentUserService currentUserService)
     {
         _userManager = userManager;
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<UserResponse>> GetAllAsync()
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         return await _userManager.Users
+            .Where(u => u.CorporationId == currentUser.CorporationId)
             .OrderBy(u => u.UserName)
             .Select(u => ToResponse(
                 u,
@@ -35,8 +43,12 @@ public class UserService : IUserService
 
     public async Task<UserResponse?> GetByIdAsync(Guid idPublic)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         return await _userManager.Users
-            .Where(u => u.IdPublic == idPublic)
+            .Where(u =>
+                u.IdPublic == idPublic &&
+                u.CorporationId == currentUser.CorporationId)
             .Select(u => ToResponse(
                 u,
                 _context.UserRoles
@@ -48,6 +60,11 @@ public class UserService : IUserService
 
     public async Task<(IdentityResult Result, UserResponse? User)> CreateAsync(UserRequest request)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
+        if (request.CorporationId != currentUser.CorporationId)
+            return (CorporationMismatchResult(), null);
+
         var roleValidation = await ValidateRoleAsync(request.RoleId);
         if (!roleValidation.Succeeded)
             return (roleValidation, null);
@@ -84,12 +101,19 @@ public class UserService : IUserService
 
     public async Task<(IdentityResult Result, UserResponse? User)> UpdateAsync(Guid idPublic, UserRequest request)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
+        if (request.CorporationId != currentUser.CorporationId)
+            return (CorporationMismatchResult(), null);
+
         var roleValidation = await ValidateRoleAsync(request.RoleId);
         if (!roleValidation.Succeeded)
             return (roleValidation, null);
 
         var user = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.IdPublic == idPublic);
+            .FirstOrDefaultAsync(u =>
+                u.IdPublic == idPublic &&
+                u.CorporationId == currentUser.CorporationId);
 
         if (user == null)
             return (IdentityResult.Success, null);
@@ -109,14 +133,27 @@ public class UserService : IUserService
 
     public async Task<bool> DeleteAsync(Guid idPublic)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         var user = await _userManager.Users
-            .FirstOrDefaultAsync(u => u.IdPublic == idPublic);
+            .FirstOrDefaultAsync(u =>
+                u.IdPublic == idPublic &&
+                u.CorporationId == currentUser.CorporationId);
 
         if (user == null)
             return false;
 
         var result = await _userManager.DeleteAsync(user);
         return result.Succeeded;
+    }
+
+    private static IdentityResult CorporationMismatchResult()
+    {
+        return IdentityResult.Failed(new IdentityError
+        {
+            Code = "CorporationMismatch",
+            Description = "Usuário não pode gerenciar registros de outra empresa."
+        });
     }
 
     private static void ApplyRequest(User user, UserRequest request)

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using OctaPro.Services.interfaces;
 using System.Text;
 
 namespace OctaPro.Configurations;
@@ -35,6 +36,25 @@ public static class JwtConfiguration
                 ValidAudience = GetConfigurationValue(configuration, "Jwt:Audience", "JWT_AUDIENCE"),
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(GetRequiredConfigurationValue(configuration, "Jwt:Key", "JWT_KEY")))
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    const string bearerPrefix = "Bearer ";
+                    var authorization = context.HttpContext.Request.Headers.Authorization.ToString();
+
+                    if (!authorization.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
+                        return;
+
+                    var token = authorization[bearerPrefix.Length..].Trim();
+                    var tokenRevocationService = context.HttpContext.RequestServices
+                        .GetRequiredService<ITokenRevocationService>();
+
+                    if (await tokenRevocationService.IsTokenRevokedAsync(token))
+                        context.Fail("Token revogado.");
+                }
             };
         });
 

@@ -56,7 +56,7 @@ public partial class Settlement
     public long UserId { get; set; }
 
     [Column("corporation_id")]
-    public int CorporationId { get; set; }
+    public long CorporationId { get; set; }
 
     [ForeignKey(nameof(JudicialProcessId))]
     public virtual JudicialProcess JudicialProcess { get; set; } = null!;

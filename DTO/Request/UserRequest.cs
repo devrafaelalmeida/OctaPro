@@ -27,7 +27,7 @@ public class UserRequest
     public string? Password { get; set; }
 
     [Required]
-    public int CorporationId { get; set; }
+    public long CorporationId { get; set; }
 
     [Required]
     public int RoleId { get; set; }
