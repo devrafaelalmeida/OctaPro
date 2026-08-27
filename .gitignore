@@ -485,4 +485,6 @@ $RECYCLE.BIN/
 bin/
 obj/
 
-app.key
+*.key
+*.crt
+*.sql
