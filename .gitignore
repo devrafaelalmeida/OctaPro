@@ -486,3 +486,5 @@ bin/
 obj/
 
 app.key
+Logs/
+.Logs/

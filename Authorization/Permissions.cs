@@ -2,6 +2,9 @@ namespace OctaPro.Authorization;
 
 public static class Permissions
 {
+    public const string AccessControlRead = "access_control.read";
+    public const string AccessControlUpdate = "access_control.update";
+
     public const string CorporationRead = "corporation.read";
     public const string CorporationCreate = "corporation.create";
     public const string CorporationUpdate = "corporation.update";
@@ -39,6 +42,8 @@ public static class Permissions
 
     public static readonly string[] All =
     [
+        AccessControlRead,
+        AccessControlUpdate,
         CorporationRead,
         CorporationCreate,
         CorporationUpdate,

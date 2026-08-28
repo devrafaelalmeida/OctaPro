@@ -7,8 +7,19 @@ namespace OctaPro.Data.Seeds;
 
 public static class PermissionSeeder
 {
+    private static readonly string[] CorporationPermissions =
+    [
+        Permissions.CorporationRead,
+        Permissions.CorporationCreate,
+        Permissions.CorporationUpdate,
+        Permissions.CorporationDelete
+    ];
+
     private static readonly IReadOnlyDictionary<string, string> PermissionDescriptions = new Dictionary<string, string>
     {
+        [Permissions.AccessControlRead] = "Visualizar controle de acesso",
+        [Permissions.AccessControlUpdate] = "Editar controle de acesso",
+
         [Permissions.CorporationRead] = "Visualizar empresas",
         [Permissions.CorporationCreate] = "Criar empresas",
         [Permissions.CorporationUpdate] = "Editar empresas",
@@ -47,11 +58,13 @@ public static class PermissionSeeder
 
     private static readonly IReadOnlyDictionary<UserRole, string[]> RolePermissions = new Dictionary<UserRole, string[]>
     {
-        [UserRole.ADMIN] = PermissionDescriptions.Keys.ToArray(),
-        [UserRole.MANAGER] = PermissionDescriptions.Keys.ToArray(),
+        [UserRole.ADMIN] = PermissionDescriptions.Keys.Where(IsCrudPermission).ToArray(),
+        [UserRole.MANAGER] = PermissionDescriptions.Keys
+            .Where(IsCrudPermission)
+            .Except(CorporationPermissions)
+            .ToArray(),
         [UserRole.COMMON] =
         [
-            Permissions.CorporationRead,
             Permissions.EntityRead,
             Permissions.JudicialProcessRead,
             Permissions.LegalFeeRead,
@@ -128,5 +141,13 @@ public static class PermissionSeeder
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static bool IsCrudPermission(string permissionKey)
+    {
+        return permissionKey.EndsWith(".read", StringComparison.OrdinalIgnoreCase) ||
+            permissionKey.EndsWith(".create", StringComparison.OrdinalIgnoreCase) ||
+            permissionKey.EndsWith(".update", StringComparison.OrdinalIgnoreCase) ||
+            permissionKey.EndsWith(".delete", StringComparison.OrdinalIgnoreCase);
     }
 }

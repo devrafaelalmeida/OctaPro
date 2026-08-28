@@ -94,6 +94,7 @@ public class UserService : IUserService
             UserId = user.Id,
             RoleId = request.RoleId
         });
+
         await _context.SaveChangesAsync();
 
         return (result, ToResponse(user, request.RoleId));
