@@ -488,3 +488,6 @@ obj/
 app.key
 Logs/
 .Logs/
+
+tenants.db
+*.db
