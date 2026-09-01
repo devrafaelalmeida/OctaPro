@@ -12,17 +12,20 @@ namespace OctaPro.Services
         private readonly SignInManager<User> _signInManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenService _tokenService;
+        private readonly ITokenRevocationService _tokenRevocationService;
 
         public AuthService(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IHttpContextAccessor httpContextAccessor,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            ITokenRevocationService tokenRevocationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _httpContextAccessor = httpContextAccessor;
             _tokenService = tokenService;
+            _tokenRevocationService = tokenRevocationService;
         }
 
         public async Task<string?> LoginAsync(string email, string password)
@@ -40,6 +43,7 @@ namespace OctaPro.Services
 
         public async Task LogoutAsync()
         {
+            await _tokenRevocationService.RevokeCurrentTokenAsync();
             await _signInManager.SignOutAsync();
         }
 

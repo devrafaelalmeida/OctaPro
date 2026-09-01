@@ -20,6 +20,12 @@ public class EntityConfiguration : IEntityTypeConfiguration<Entity>
         entity.Property(e => e.UpdatedAt)
             .HasDefaultValueSql("now()");
 
+        entity.HasOne(e => e.Corporation)
+            .WithMany()
+            .HasForeignKey(e => e.CorporationId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_entities_corporation");
+
         entity.Ignore(e => e.LegalFeeInstallments);
     }
 }

@@ -488,3 +488,9 @@ obj/
 *.key
 *.crt
 *.sql
+app.key
+Logs/
+.Logs/
+
+tenants.db
+*.db

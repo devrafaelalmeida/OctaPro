@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
 using OctaPro.Services.interfaces;
@@ -8,7 +9,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin,Manager,Common")]
+    [Authorize(Policy = Permissions.LegalFeeRead)]
     [Route("api/legal-fees")]
     public class LegalFeeController : ControllerBase
     {
@@ -36,7 +37,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.LegalFeeCreate)]
         public async Task<IActionResult> SaveLegalFee(LegalFeeRequest request)
         {
             string? userLoggedUUID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -49,7 +50,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost("{legalFeeId:guid}/add-installment")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.LegalFeeAddInstallment)]
         public async Task<ActionResult<InstallmentResponse>> AddInstallment(
             Guid legalFeeId,
             InstallmentRequest request)
@@ -60,7 +61,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpDelete("{legalFeeId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.LegalFeeDelete)]
         public async Task<IActionResult> DeleteLegalFee(Guid legalFeeId)
         {
             if (!await _service.DeleteAsync(legalFeeId))
@@ -70,7 +71,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPut("{legalFeeId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.LegalFeeUpdate)]
         public async Task<IActionResult> UpdateLegalFee(Guid legalFeeId, LegalFeeRequest request)
         {
             if (!await _service.UpdateAsync(legalFeeId, request))

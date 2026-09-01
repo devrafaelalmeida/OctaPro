@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
 using OctaPro.Services.interfaces;
@@ -7,7 +8,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Manager,Common")]
+[Authorize(Policy = Permissions.CorporationRead)]
 [Route("api/corporations")]
 public class CorporationController : ControllerBase
 {
@@ -36,7 +37,7 @@ public class CorporationController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.CorporationCreate)]
     public async Task<ActionResult<CorporationResponse>> Create(CorporationRequest request)
     {
         var corporation = await _service.CreateAsync(request);
@@ -45,7 +46,7 @@ public class CorporationController : ControllerBase
     }
 
     [HttpPut("{idPublic:guid}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.CorporationUpdate)]
     public async Task<ActionResult<CorporationResponse>> Update(Guid idPublic, CorporationRequest request)
     {
         var corporation = await _service.UpdateAsync(idPublic, request);
@@ -57,7 +58,7 @@ public class CorporationController : ControllerBase
     }
 
     [HttpDelete("{idPublic:guid}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.CorporationDelete)]
     public async Task<IActionResult> Delete(Guid idPublic)
     {
         if (!await _service.DeleteAsync(idPublic))

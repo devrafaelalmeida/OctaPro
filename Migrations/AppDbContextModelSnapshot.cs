@@ -479,6 +479,10 @@ namespace OctaPro.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("CorporationId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("corporation_id");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamptz")
@@ -508,6 +512,8 @@ namespace OctaPro.Migrations
 
                     b.HasKey("Id")
                         .HasName("entities_pkey");
+
+                    b.HasIndex("CorporationId");
 
                     b.HasIndex(new[] { "IdPublic" }, "entities_id_public_key")
                         .IsUnique();
@@ -946,8 +952,8 @@ namespace OctaPro.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("CorporationId")
-                        .HasColumnType("integer")
+                    b.Property<long>("CorporationId")
+                        .HasColumnType("bigint")
                         .HasColumnName("corporation_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1104,8 +1110,8 @@ namespace OctaPro.Migrations
                         .HasDefaultValue(0.0m)
                         .HasColumnName("amount");
 
-                    b.Property<int>("CorporationId")
-                        .HasColumnType("integer")
+                    b.Property<long>("CorporationId")
+                        .HasColumnType("bigint")
                         .HasColumnName("corporation_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1237,6 +1243,128 @@ namespace OctaPro.Migrations
                     b.ToTable("nature_actions");
                 });
 
+            modelBuilder.Entity("OctaPro.Models.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("permissions_pkey");
+
+                    b.HasIndex("Key")
+                        .IsUnique()
+                        .HasDatabaseName("permissions_key_unique");
+
+                    b.ToTable("permissions");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.RevokedToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTime>("RevokedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("revoked_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("revoked_tokens_pkey");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("revoked_tokens_expires_at_index");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("revoked_tokens_token_hash_unique");
+
+                    b.ToTable("revoked_tokens");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.RolePermission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("permission_id");
+
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("role_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("permissions_role_pkey");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId", "PermissionId")
+                        .IsUnique()
+                        .HasDatabaseName("permissions_role_role_id_permission_id_unique");
+
+                    b.ToTable("permissions_role");
+                });
+
             modelBuilder.Entity("OctaPro.Models.Session", b =>
                 {
                     b.Property<string>("Id")
@@ -1290,8 +1418,8 @@ namespace OctaPro.Migrations
                         .HasColumnType("numeric(10,2)")
                         .HasColumnName("amount");
 
-                    b.Property<int>("CorporationId")
-                        .HasColumnType("integer")
+                    b.Property<long>("CorporationId")
+                        .HasColumnType("bigint")
                         .HasColumnName("corporation_id");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1515,8 +1643,8 @@ namespace OctaPro.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.Property<int>("CorporationId")
-                        .HasColumnType("integer")
+                    b.Property<long>("CorporationId")
+                        .HasColumnType("bigint")
                         .HasColumnName("corporation_id");
 
                     b.Property<DateTime?>("CreatedAt")
@@ -1609,6 +1737,47 @@ namespace OctaPro.Migrations
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("OctaPro.Models.UserPermission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("permission_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("users_permissions_pkey");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("UserId", "PermissionId")
+                        .IsUnique()
+                        .HasDatabaseName("users_permissions_user_id_permission_id_unique");
+
+                    b.ToTable("users_permissions");
                 });
 
             modelBuilder.Entity("OctaPro.Models.LegalFeeInstallment", b =>
@@ -1718,6 +1887,18 @@ namespace OctaPro.Migrations
                     b.Navigation("Entity");
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.Entity", b =>
+                {
+                    b.HasOne("OctaPro.Models.Corporation", "Corporation")
+                        .WithMany()
+                        .HasForeignKey("CorporationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_entities_corporation");
+
+                    b.Navigation("Corporation");
                 });
 
             modelBuilder.Entity("OctaPro.Models.EntityCompany", b =>
@@ -1887,6 +2068,27 @@ namespace OctaPro.Migrations
                     b.Navigation("LegalFee");
                 });
 
+            modelBuilder.Entity("OctaPro.Models.RolePermission", b =>
+                {
+                    b.HasOne("OctaPro.Models.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_permissions_role_permission");
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<long>", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_permissions_role_role");
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("OctaPro.Models.Settlement", b =>
                 {
                     b.HasOne("OctaPro.Models.JudicialProcess", "JudicialProcess")
@@ -1912,6 +2114,27 @@ namespace OctaPro.Migrations
                     b.Navigation("JudicialProcess");
 
                     b.Navigation("StatusPayment");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.UserPermission", b =>
+                {
+                    b.HasOne("OctaPro.Models.Permission", "Permission")
+                        .WithMany("UserPermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_users_permissions_permission");
+
+                    b.HasOne("OctaPro.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_users_permissions_user");
+
+                    b.Navigation("Permission");
 
                     b.Navigation("User");
                 });
@@ -1951,6 +2174,13 @@ namespace OctaPro.Migrations
                     b.Navigation("JudicialAction");
 
                     b.Navigation("JudicialProcesses");
+                });
+
+            modelBuilder.Entity("OctaPro.Models.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+
+                    b.Navigation("UserPermissions");
                 });
 
             modelBuilder.Entity("OctaPro.Models.TypeInstallment", b =>

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
 using OctaPro.Services.interfaces;
@@ -7,7 +8,6 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin,Manager,Common")]
     [Route("api/installments")]
     public class InstallmentController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPut("reverse-installments")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.InstallmentReverse)]
         public async Task<ActionResult<ReverseInstallmentResult>> ReverseInstallments(ReverseInstallmentRequest request)
         {
             var result = await _installmentService.ReverseInstallmentsAsync(request.TypeId, request.ReferenceId, request.Ids);

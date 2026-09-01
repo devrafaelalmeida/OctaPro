@@ -12,14 +12,18 @@ namespace OctaPro.Services
     public class JudicialProcessService : IJudicialProcessService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
         private readonly int IS_ARCHIVED = 2;
-        public JudicialProcessService(AppDbContext context)
+        public JudicialProcessService(AppDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<JudicialProcessResponse>> GetAllAsync(ProcessFilterRequest filter)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var query = _context.JudicialProcesses
                 .Include(p => p.NatureAction)
                 .Include(p => p.JudicialAction)
@@ -30,6 +34,7 @@ namespace OctaPro.Services
                 .Include(p => p.JudicialProcessEntities)
                     .ThenInclude(jpe => jpe.Entity)
                         .ThenInclude(e => e.EntityCompany)
+                .Where(p => p.CorporationId == currentUser.CorporationId)
                 .AsQueryable();
 
 
@@ -108,6 +113,8 @@ namespace OctaPro.Services
 
         public async Task<JudicialProcessResponse?> GetByIdAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var process = await _context.JudicialProcesses
                 .Include(p => p.NatureAction)
                 .Include(p => p.JudicialAction)
@@ -118,7 +125,9 @@ namespace OctaPro.Services
                 .Include(p => p.JudicialProcessEntities)
                     .ThenInclude(jpe => jpe.Entity)
                         .ThenInclude(e => e.EntityCompany)
-                .FirstOrDefaultAsync(p => p.IdPublic == idPublic);
+                .FirstOrDefaultAsync(p =>
+                    p.IdPublic == idPublic &&
+                    p.CorporationId == currentUser.CorporationId);
 
             if (process == null)
                 return null;
@@ -218,8 +227,12 @@ namespace OctaPro.Services
 
         public async Task<bool> ArchiveAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var process = await _context.JudicialProcesses
-                .FirstOrDefaultAsync(p => p.IdPublic == idPublic);
+                .FirstOrDefaultAsync(p =>
+                    p.IdPublic == idPublic &&
+                    p.CorporationId == currentUser.CorporationId);
 
             if (process == null)
                 return false;
@@ -261,8 +274,12 @@ namespace OctaPro.Services
 
         public async Task<bool> DeleteAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var process = await _context.JudicialProcesses
-                .FirstOrDefaultAsync(p => p.IdPublic == idPublic);
+                .FirstOrDefaultAsync(p =>
+                    p.IdPublic == idPublic &&
+                    p.CorporationId == currentUser.CorporationId);
 
             if (process == null)
                 return false;
@@ -299,10 +316,20 @@ namespace OctaPro.Services
             return actions;
         }
 
-        public Task<IEnumerable<SelectOptionResponse>> searchProcessAsync(string searchTerm)
+        public async Task<IEnumerable<SelectOptionResponse>> searchProcessAsync(string searchTerm)
         {
-            var processes = JudicialProcess.forSelect(_context, searchTerm);
-            return Task.FromResult(processes.AsEnumerable());
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
+            return await _context.JudicialProcesses
+                .Where(p =>
+                    p.CorporationId == currentUser.CorporationId &&
+                    p.ProcessNumber.Contains(searchTerm))
+                .Select(p => new SelectOptionResponse
+                {
+                    IdPublic = p.IdPublic,
+                    Text = p.ProcessNumber
+                })
+                .ToListAsync();
         }
     }
 }

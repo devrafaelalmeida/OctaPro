@@ -17,6 +17,10 @@ namespace OctaPro.Extensions
             services.AddScoped<IInstallmentService, InstallmentService>();
             services.AddScoped<ICorporationService, CorporationService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IAccessControlService, AccessControlService>();
+            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ITokenRevocationService, TokenRevocationService>();
             
 
 

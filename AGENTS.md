@@ -52,7 +52,9 @@ docker compose exec dev-env npx prisma migrate dev
 docker compose exec dev-env vite
 ```
 
-Antes de executar qualquer comando, verifique se o container `dev-env` está em execução. Caso não esteja, informe o usuário e aguarde instruções antes de iniciar ou reiniciar containers.
+Antes de executar o primeiro comando da conversa/contexto, verifique se o container `dev-env` está em execução. Caso não esteja, solicite ao usuário para subir o container, aguarde e não faca mais nada. Após ele subir o container, voce receberá o comando "/start" para indicar que o container já subiu. SOMENTE APÓS esse comando, continue a executar a tarefa sem precisar ficar verificando a cada tarefa se o container foi iniciado. 
+
+As únicas EXCECOES são para comandos de commit e migrate, que ainda requer permissão para executa-los
 
 
 ## Alterações de código

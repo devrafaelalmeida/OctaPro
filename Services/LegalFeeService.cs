@@ -11,19 +11,24 @@ namespace OctaPro.Services
     public class LegalFeeService : ILegalFeeService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public LegalFeeService(AppDbContext context)
+        public LegalFeeService(AppDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<LegalFeeResponse>> GetAllAsync(SettlementFilterRequest filter)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var query = _context.LegalFees
                 .Include(lf => lf.JudicialProcess)
                 .Include(lf => lf.StatusPayment)
                 .Include(lf => lf.LegalFeeEntities)
                     .ThenInclude(lfe => lfe.Entity)
+                .Where(lf => lf.CorporationId == currentUser.CorporationId)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.ProcessNumber))
@@ -61,12 +66,16 @@ namespace OctaPro.Services
 
         public async Task<LegalFeeResponse?> GetByIdAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var legalFee = await _context.LegalFees
                 .Include(lf => lf.JudicialProcess)
                 .Include(lf => lf.StatusPayment)
                 .Include(lf => lf.LegalFeeEntities)
                     .ThenInclude(lfe => lfe.Entity)
-                .FirstOrDefaultAsync(lf => lf.IdPublic == idPublic);
+                .FirstOrDefaultAsync(lf =>
+                    lf.IdPublic == idPublic &&
+                    lf.CorporationId == currentUser.CorporationId);
 
             if (legalFee == null)
                 return null;
@@ -87,6 +96,9 @@ namespace OctaPro.Services
 
             var judicialProcess = await FindJudicialProcessAsync(request)
                 ?? throw new Exception("Processo judicial não encontrado");
+
+            if (judicialProcess.CorporationId != userLogged.CorporationId)
+                throw new Exception("Processo judicial não encontrado");
 
             if (judicialProcess.IsArchived)
                 throw new InvalidOperationException("Não é possível lançar honorários em um processo encerrado.");
@@ -121,9 +133,17 @@ namespace OctaPro.Services
 
         public async Task<InstallmentResponse> AddInstallmentAsync(Guid legalFeeId, InstallmentRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var legalFee = await _context.LegalFees
-                .FirstOrDefaultAsync(lf => lf.IdPublic == legalFeeId)
+                .Include(lf => lf.JudicialProcess)
+                .FirstOrDefaultAsync(lf =>
+                    lf.IdPublic == legalFeeId &&
+                    lf.CorporationId == currentUser.CorporationId)
                 ?? throw new Exception("Honorário não encontrado");
+
+            if (legalFee.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível adicionar parcela em honorário de processo arquivado.");
 
             var installment = legalFee.AddInstallment(request.ValueInstallment, request.DueDate);
 
@@ -136,11 +156,19 @@ namespace OctaPro.Services
 
         public async Task<bool> DeleteAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var legalFee = await _context.LegalFees
-                .FirstOrDefaultAsync(lf => lf.IdPublic == idPublic);
+                .Include(lf => lf.JudicialProcess)
+                .FirstOrDefaultAsync(lf =>
+                    lf.IdPublic == idPublic &&
+                    lf.CorporationId == currentUser.CorporationId);
 
             if (legalFee == null)
                 return false;
+
+            if (legalFee.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível excluir honorário de processo arquivado.");
 
             _context.LegalFees.Remove(legalFee);
             await _context.SaveChangesAsync();
@@ -149,11 +177,19 @@ namespace OctaPro.Services
 
         public async Task<bool> UpdateAsync(Guid legalFeeId, LegalFeeRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var legalFee = await _context.LegalFees
-                .FirstOrDefaultAsync(lf => lf.IdPublic == legalFeeId);
+                .Include(lf => lf.JudicialProcess)
+                .FirstOrDefaultAsync(lf =>
+                    lf.IdPublic == legalFeeId &&
+                    lf.CorporationId == currentUser.CorporationId);
 
             if (legalFee == null)
                 return false;
+
+            if (legalFee.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível editar honorário de processo arquivado.");
 
             legalFee.Amount = request.Amount;
             legalFee.QuantityInstallment = request.QuantityInstallment;

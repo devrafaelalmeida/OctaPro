@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         return Ok(new { token });
     }
 
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {

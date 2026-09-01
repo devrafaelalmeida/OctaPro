@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
@@ -9,7 +10,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin,Manager,Common")]
+    [Authorize(Policy = Permissions.SettlementRead)]
     [Route("api/settlements")]
     public class SettlementController : ControllerBase
     {
@@ -37,7 +38,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.SettlementCreate)]
         public async Task<IActionResult> SaveSettlement(SettlementRequest request)
         {
             string? userLoggedUUID = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -52,7 +53,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost("{settlementId:guid}/add-installment")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.SettlementAddInstallment)]
         public async Task<ActionResult<InstallmentResponse>> AddInstallment(
             Guid settlementId,
             InstallmentRequest request)
@@ -63,7 +64,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpDelete("{settlementId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.SettlementDelete)]
         public async Task<IActionResult> DeleteSettlement(Guid settlementId)
         {
             if (!await _service.DeleteAsync(settlementId))
@@ -73,7 +74,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPut("{settlementId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.SettlementUpdate)]
         public async Task<IActionResult> UpdateSettlement(Guid settlementId, SettlementRequest request)
         {
             if (!await _service.UpdateAsync(settlementId, request))

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
 using OctaPro.Services.interfaces;
@@ -7,7 +8,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,Manager,Common")]
+[Authorize(Policy = Permissions.UserRead)]
 [Route("api/users")]
 public class UserController : ControllerBase
 {
@@ -36,7 +37,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("register")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.UserCreate)]
     public async Task<ActionResult<UserResponse>> Create(UserRequest request)
     {
         var (result, user) = await _service.CreateAsync(request);
@@ -48,7 +49,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("{idPublic:guid}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.UserUpdate)]
     public async Task<ActionResult<UserResponse>> Update(Guid idPublic, UserRequest request)
     {
         var (result, user) = await _service.UpdateAsync(idPublic, request);
@@ -63,7 +64,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("{idPublic:guid}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Policy = Permissions.UserDelete)]
     public async Task<IActionResult> Delete(Guid idPublic)
     {
         if (!await _service.DeleteAsync(idPublic))

@@ -13,34 +13,39 @@ namespace OctaPro.Services
     public class EntityService : IEntityService
     {
         private readonly AppDbContext _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public EntityService(AppDbContext context)
+        public EntityService(AppDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<EntityResponse>> GetEntitiesAsync(EntityFilterRequest filter)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
             var query = _context.Entities
                 .Include(e => e.EntityIndividual)
                 .Include(e => e.EntityCompany)
+                .Where(e => e.CorporationId == currentUser.CorporationId)
                 .AsQueryable();
 
             if (filter.IdPublicEntity.HasValue)
                 query = query.Where(e => e.IdPublic == filter.IdPublicEntity.Value);
 
             if (!string.IsNullOrEmpty(filter.Name))
-                query = query.Where(e => e.EntityIndividual != null && e.EntityIndividual.Name.ToUpper().Contains(filter.Name.ToUpper()) ||
-                                         e.EntityCompany != null && e.EntityCompany.CorporateName.ToUpper().Contains(filter.Name.ToUpper()));
+                query = query.Where(e =>
+                    (e.EntityIndividual != null && e.EntityIndividual.Name.ToUpper().Contains(filter.Name.ToUpper())) ||
+                    (e.EntityCompany != null && e.EntityCompany.CorporateName.ToUpper().Contains(filter.Name.ToUpper())));
 
             if (!string.IsNullOrEmpty(filter.Status))
                 query = query.Where(e => e.StatusId == int.Parse(filter.Status));
             
             if (filter.CpfCnpj != null)
                 query = query.Where(e =>
-                    e.EntityIndividual != null && e.EntityIndividual.Cpf == filter.CpfCnpj ||
-                    e.EntityCompany != null && e.EntityCompany.Cnpj == filter.CpfCnpj);
+                    (e.EntityIndividual != null && e.EntityIndividual.Cpf == filter.CpfCnpj) ||
+                    (e.EntityCompany != null && e.EntityCompany.Cnpj == filter.CpfCnpj));
 
              return await query
                         .Select(e => new EntityResponse
@@ -89,10 +94,14 @@ namespace OctaPro.Services
 
         public async Task<EntityResponse?> GetByIdAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             return await _context.Entities
                 .Include(e => e.EntityIndividual)
                 .Include(e => e.EntityCompany)
-                .Where(e => e.IdPublic == idPublic)
+                .Where(e =>
+                    e.IdPublic == idPublic &&
+                    e.CorporationId == currentUser.CorporationId)
                 .Select(e => new EntityResponse
                 {
                     IdPublic = e.IdPublic,
@@ -139,11 +148,14 @@ namespace OctaPro.Services
 
         public async Task CreateEntityIndividualAsync(EntityIndividualRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var entity = new Entity
             {
                 IdPublic = Guid.NewGuid(),
                 EntityType = "PF",
-                StatusId = 1
+                StatusId = 1,
+                CorporationId = currentUser.CorporationId
             };
 
             var entityIndividual = new EntityIndividual
@@ -171,11 +183,14 @@ namespace OctaPro.Services
 
         public async Task CreateEntityCompanyAsync(EntityCompanyRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var entity = new Entity
             {
                 IdPublic = Guid.NewGuid(),
                 EntityType = "PJ",
-                StatusId = 1
+                StatusId = 1,
+                CorporationId = currentUser.CorporationId
             };
 
             var entityCompany = new EntityCompany
@@ -202,9 +217,13 @@ namespace OctaPro.Services
 
         public async Task<bool> UpdateEntityIndividualAsync(Guid entityId, EntityIndividualRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var entityIndividual = await _context.EntitiesIndividuals
                 .Include(e => e.Entity)
-                .FirstOrDefaultAsync(e => e.Entity.IdPublic == entityId);
+                .FirstOrDefaultAsync(e =>
+                    e.Entity.IdPublic == entityId &&
+                    e.Entity.CorporationId == currentUser.CorporationId);
 
             if (entityIndividual == null)
                 return false;
@@ -232,9 +251,13 @@ namespace OctaPro.Services
 
         public async Task<bool> UpdateEntityCompanyAsync(Guid entityId, EntityCompanyRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var entityCompany = await _context.EntitiesCompanies
                 .Include(e => e.Entity)
-                .FirstOrDefaultAsync(e => e.Entity.IdPublic == entityId);
+                .FirstOrDefaultAsync(e =>
+                    e.Entity.IdPublic == entityId &&
+                    e.Entity.CorporationId == currentUser.CorporationId);
 
             if (entityCompany == null || entityCompany.Entity.EntityType != "PJ")
                 return false;
@@ -261,10 +284,14 @@ namespace OctaPro.Services
 
         public async Task<bool> DeleteEntityAsync(Guid entityId)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var entity = await _context.Entities
                 .Include(e => e.EntityIndividual)
                 .Include(e => e.EntityCompany)
-                .FirstOrDefaultAsync(e => e.IdPublic == entityId);
+                .FirstOrDefaultAsync(e =>
+                    e.IdPublic == entityId &&
+                    e.CorporationId == currentUser.CorporationId);
 
             if (entity == null)
                 return false;
@@ -276,15 +303,20 @@ namespace OctaPro.Services
 
         public async Task<IEnumerable<EntitySelectResponse>> SearchClientsAsync(string query)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             query = query.ToLower();
 
             return await _context.Entities
                 .Where(e =>
-                    (e.EntityIndividual != null &&
-                    e.EntityIndividual.Name.ToLower().Contains(query))
-                    ||
-                    (e.EntityCompany != null &&
-                    e.EntityCompany.CorporateName.ToLower().Contains(query))
+                    e.CorporationId == currentUser.CorporationId &&
+                    (
+                        (e.EntityIndividual != null &&
+                        e.EntityIndividual.Name.ToLower().Contains(query))
+                        ||
+                        (e.EntityCompany != null &&
+                        e.EntityCompany.CorporateName.ToLower().Contains(query))
+                    )
                 )
                 .Select(e => new EntitySelectResponse
                 {

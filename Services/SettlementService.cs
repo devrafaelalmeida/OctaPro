@@ -13,16 +13,22 @@ namespace OctaPro.Services
     public class SettlementService : ISettlementService
     {
         private readonly AppDbContext _context;
-        public SettlementService(AppDbContext context)
+        private readonly ICurrentUserService _currentUserService;
+
+        public SettlementService(AppDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<SettlementResponse>> GetAllAsync(SettlementFilterRequest filter)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var query = _context.Settlements
                 .Include(s => s.JudicialProcess)
                 .Include(s => s.StatusPayment)
+                .Where(s => s.CorporationId == currentUser.CorporationId)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(filter.ProcessNumber))
@@ -83,10 +89,14 @@ namespace OctaPro.Services
 
         public async Task<SettlementResponse?> GetByIdAsync(Guid idPublic)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var settlement = await _context.Settlements
                 .Include(s => s.JudicialProcess)
                 .Include(s => s.StatusPayment)
-                .FirstOrDefaultAsync(s => s.IdPublic == idPublic);
+                .FirstOrDefaultAsync(s =>
+                    s.IdPublic == idPublic &&
+                    s.CorporationId == currentUser.CorporationId);
 
             if (settlement == null)
                 return null;
@@ -129,8 +139,14 @@ namespace OctaPro.Services
             var userLogged = await _context.Users.FirstOrDefaultAsync(user => user.IdPublic == userLoggedUUID)
             ?? throw new Exception("Usuário não encontrado");
 
-            var judicialProcess = await _context.JudicialProcesses.FirstOrDefaultAsync(p => p.IdPublic == request.ProcessNumberId)
+            var judicialProcess = await _context.JudicialProcesses
+                .FirstOrDefaultAsync(p =>
+                    p.IdPublic == request.ProcessNumberId &&
+                    p.CorporationId == userLogged.CorporationId)
                 ?? throw new Exception("Processo judicial não encontrado");
+
+            if (judicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível criar acordo em um processo arquivado.");
 
             var settlement = new Settlement
             {
@@ -158,9 +174,17 @@ namespace OctaPro.Services
 
         public async Task<InstallmentResponse> AddInstallmentAsync(Guid settlementId, InstallmentRequest request)
         {
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
             var settlement = await _context.Settlements
-                .FirstOrDefaultAsync(s => s.IdPublic == settlementId)
+                .Include(s => s.JudicialProcess)
+                .FirstOrDefaultAsync(s =>
+                    s.IdPublic == settlementId &&
+                    s.CorporationId == currentUser.CorporationId)
                 ?? throw new Exception("Acordo não encontrado");
+
+            if (settlement.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível adicionar parcela em acordo de processo arquivado.");
 
             var installment = settlement.AddInstallment(request.ValueInstallment, request.DueDate);
 
@@ -186,31 +210,45 @@ namespace OctaPro.Services
 
         public async Task<bool> DeleteAsync(Guid idPublic)
         {
-            var process = await _context.JudicialProcesses
-                .FirstOrDefaultAsync(p => p.IdPublic == idPublic);
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-            if (process == null)
+            var settlement = await _context.Settlements
+                .Include(s => s.JudicialProcess)
+                .FirstOrDefaultAsync(s =>
+                    s.IdPublic == idPublic &&
+                    s.CorporationId == currentUser.CorporationId);
+
+            if (settlement == null)
                 return false;
 
-            _context.JudicialProcesses.Remove(process);
+            if (settlement.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível excluir acordo de processo arquivado.");
+
+            _context.Settlements.Remove(settlement);
             await _context.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> UpdateAsync(Guid settlementId, SettlementRequest request)
         {
-            var process = await _context.JudicialProcesses
-                .FirstOrDefaultAsync(p => p.IdPublic == settlementId);
+            var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-            if (process == null)
+            var settlement = await _context.Settlements
+                .Include(s => s.JudicialProcess)
+                .FirstOrDefaultAsync(s =>
+                    s.IdPublic == settlementId &&
+                    s.CorporationId == currentUser.CorporationId);
+
+            if (settlement == null)
                 return false;
 
-            // process.ProcessNumber = request.ProcessNumber;
-            // process.InitialDate = request.InitialDate;
-            // process.Respondent = request.Respondent;
-            // process.Description = request.Description;
-            // process.NatureActionId = request.NatureActionId;
-            // process.JudicialActionId = request.JudicialActionId;
+            if (settlement.JudicialProcess.IsArchived)
+                throw new InvalidOperationException("Não é possível editar acordo de processo arquivado.");
+
+            settlement.Amount = request.Amount;
+            settlement.QuantityInstallment = request.QuantityInstallment;
+            settlement.Note = request.Note;
+            settlement.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

@@ -10,15 +10,20 @@ namespace OctaPro.Services;
 public class CorporationService : ICorporationService
 {
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CorporationService(AppDbContext context)
+    public CorporationService(AppDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<CorporationResponse>> GetAllAsync()
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         return await _context.Corporations
+            .Where(c => c.Id == currentUser.CorporationId)
             .OrderBy(c => c.TradeName)
             .Select(c => ToResponse(c))
             .ToListAsync();
@@ -26,8 +31,12 @@ public class CorporationService : ICorporationService
 
     public async Task<CorporationResponse?> GetByIdAsync(Guid idPublic)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         return await _context.Corporations
-            .Where(c => c.IdPublic == idPublic)
+            .Where(c =>
+                c.IdPublic == idPublic &&
+                c.Id == currentUser.CorporationId)
             .Select(c => ToResponse(c))
             .FirstOrDefaultAsync();
     }
@@ -45,8 +54,12 @@ public class CorporationService : ICorporationService
 
     public async Task<CorporationResponse?> UpdateAsync(Guid idPublic, CorporationRequest request)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         var corporation = await _context.Corporations
-            .FirstOrDefaultAsync(c => c.IdPublic == idPublic);
+            .FirstOrDefaultAsync(c =>
+                c.IdPublic == idPublic &&
+                c.Id == currentUser.CorporationId);
 
         if (corporation == null)
             return null;
@@ -61,8 +74,12 @@ public class CorporationService : ICorporationService
 
     public async Task<bool> DeleteAsync(Guid idPublic)
     {
+        var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
+
         var corporation = await _context.Corporations
-            .FirstOrDefaultAsync(c => c.IdPublic == idPublic);
+            .FirstOrDefaultAsync(c =>
+                c.IdPublic == idPublic &&
+                c.Id == currentUser.CorporationId);
 
         if (corporation == null)
             return false;

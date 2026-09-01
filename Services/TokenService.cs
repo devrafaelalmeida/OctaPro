@@ -29,7 +29,7 @@ namespace OctaPro.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.IdPublic.ToString()),
-                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim("corporation_id", user.CorporationId.ToString()),
             };
 
             foreach (var role in roles)

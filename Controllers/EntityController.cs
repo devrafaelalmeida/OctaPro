@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctaPro.Authorization;
 using OctaPro.DTO;
 using OctaPro.DTO.Request;
 using OctaPro.DTO.Response;
@@ -8,7 +9,7 @@ using OctaPro.Services.interfaces;
 namespace OctaPro.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin,Manager,Common")]
+    [Authorize(Policy = Permissions.EntityRead)]
     [Route("api/entity")]
     public class EntityController : ControllerBase
     {
@@ -36,7 +37,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost("pf")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.EntityCreate)]
         public async Task<IActionResult> CreatePF(EntityIndividualRequest request)
         {
             await _service.CreateEntityIndividualAsync(request);
@@ -44,7 +45,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPost("pj")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.EntityCreate)]
         public async Task<IActionResult> CreatePJ(EntityCompanyRequest request)
         {
             await _service.CreateEntityCompanyAsync(request);
@@ -52,7 +53,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPut("pf/{entityId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.EntityUpdate)]
         public async Task<IActionResult> UpdatePF(Guid entityId, EntityIndividualRequest request)
         {
             if (!await _service.UpdateEntityIndividualAsync(entityId, request))
@@ -62,7 +63,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpPut("pj/{entityId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.EntityUpdate)]
         public async Task<IActionResult> UpdatePJ(Guid entityId, EntityCompanyRequest request)
         {
             if (!await _service.UpdateEntityCompanyAsync(entityId, request))
@@ -72,7 +73,7 @@ namespace OctaPro.Controllers
         }
 
         [HttpDelete("{entityId:guid}")]
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Policy = Permissions.EntityDelete)]
         public async Task<IActionResult> Delete(Guid entityId)
         {
             if (!await _service.DeleteEntityAsync(entityId))
