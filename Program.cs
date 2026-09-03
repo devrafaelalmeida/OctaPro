@@ -1,19 +1,23 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using OctaPro.Authorization;
+using OctaPro.Commands;
 using OctaPro.Configurations;
 using OctaPro.Data;
-using OctaPro.Data.Seeds;
 using OctaPro.Extensions;
+using OctaPro.Middlewares;
 using OctaPro.Models;
+using OctaPro.Repositories;
 using OctaPro.Services;
 using OctaPro.Services.interfaces;
+using OctaPro.Tenancy;
 using OctaPro.Utils;
 
 EnvFileLoader.Load();
+SQLitePCL.Batteries_V2.Init();
 
 var builder = WebApplication.CreateBuilder(args);
 var environmentName = builder.Configuration["ENVIROMENT"] ?? "DEV";
@@ -25,8 +29,24 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(new AuthorizeFilter());
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(BuildConnectionString(builder.Configuration))
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+{
+    var tenantContext = serviceProvider.GetRequiredService<ITenantContext>();
+    var tenant = tenantContext.Current
+        ?? throw new InvalidOperationException("Tenant não resolvido para esta requisição.");
+
+    options.UseNpgsql(TenantConnectionStringBuilder.Build(tenant));
+});
+
+var tenantDbPath = builder.Configuration.GetConnectionString("TenantDb") ?? "Data Source=tenants.db";
+var tenantDbKey = GetRequiredConfigurationValue(builder.Configuration, "TENANT_DB_KEY");
+var tenantConnStringBuilder = new SqliteConnectionStringBuilder(tenantDbPath)
+{
+    Password = tenantDbKey
+};
+
+builder.Services.AddDbContext<TenantDbContext>(options =>
+    options.UseSqlite(tenantConnStringBuilder.ConnectionString)
 );
 
 builder.Services.AddCors(options =>
@@ -82,9 +102,32 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
+builder.Services.AddScoped<ITenantContext, TenantContext>();
 
 // ─── Build ──────────────────────────────────────────────────
 var app = builder.Build();
+
+if (args.Contains("migrate-tenants"))
+{
+    using var scope = app.Services.CreateScope();
+    await TenantMigrationRunner.RunAsync(scope.ServiceProvider);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "list-migrations")
+{
+    if (args.Length < 2)
+    {
+        Console.WriteLine("Uso: dotnet run -- list-migrations <domain-do-tenant>");
+        return;
+    }
+
+    var domain = args[1];
+    using var scope = app.Services.CreateScope();
+    await TenantMigrationInspector.ListPendingAsync(scope.ServiceProvider, domain);
+    return;
+}
 
 // ─── Middleware Pipeline ─────────────────────────────────────
 app.UseSwaggerConfiguration();
@@ -96,44 +139,18 @@ if (isProduction)
 
 app.UseCors("AllowAll");
 
+app.UseMiddleware<TenantResolutionMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider
-        .GetRequiredService<RoleManager<IdentityRole<long>>>();
-    var dbContext = scope.ServiceProvider
-        .GetRequiredService<AppDbContext>();
-
-    await CorporationSeeder.SeedInitialCorporationAsync(dbContext);
-    await RoleSeeder.SeedRolesAsync(roleManager);
-    await PermissionSeeder.SeedPermissionsAsync(dbContext);
-}
+// Seeds agora devem ser executadas manualmente por tenant, pois o AppDbContext
+// depende de um tenant resolvido durante uma requisição HTTP.
 
 app.MapControllers();
 app.MapGet("/", () => "Hello World").RequireAuthorization();
 
 app.Run();
-
-static string BuildConnectionString(IConfiguration configuration)
-{
-    var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-    if (!string.IsNullOrWhiteSpace(connectionString))
-        return connectionString;
-
-    var builder = new NpgsqlConnectionStringBuilder
-    {
-        Host = GetRequiredConfigurationValue(configuration, "DB_HOST"),
-        Port = int.Parse(GetRequiredConfigurationValue(configuration, "DB_PORT")),
-        Database = GetRequiredConfigurationValue(configuration, "DB_NAME"),
-        Username = GetRequiredConfigurationValue(configuration, "DB_USER"),
-        Password = GetRequiredConfigurationValue(configuration, "DB_PASSWORD")
-    };
-
-    return builder.ConnectionString;
-}
 
 static string GetRequiredConfigurationValue(IConfiguration configuration, string key)
 {

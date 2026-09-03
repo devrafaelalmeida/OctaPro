@@ -47,7 +47,7 @@ public static class CorporationSeeder
                 'NAO INFORMADO',
                 'NAO INFORMADO',
                 'BA',
-                'empresa.inicial@octapro.com',
+                'teste@octapro.com',
                 TRUE,
                 now(),
                 now()

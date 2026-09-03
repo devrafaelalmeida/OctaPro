@@ -30,6 +30,9 @@ namespace OctaPro.Services
 
         public async Task<string?> LoginAsync(string email, string password)
         {
+            if (string.IsNullOrEmpty(password))
+                return null;
+
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 return null;

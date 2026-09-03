@@ -27,26 +27,13 @@
             }
         },
         {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach"
-        },
-        {
-            "name": ".NET Watch + Attach",   // <-- nova entrada
+            "name": "Docker Attach .NET Manual PID",
             "type": "coreclr",
             "request": "attach",
-            "processName": "OctaPro",        // nome do executável sem extensão
-            "preLaunchTask": "watch"         // dispara a task watch antes de anexar
-        },
-         // ↓ nova entrada para o Docker
-        {
-            "name": "🐳Docker — Attach .NET",
-            "type": "coreclr",
-            "request": "attach",
-            "processName": "OctaPro",
+            "processId": "${input:dotnetProcessId}",
             "pipeTransport": {
-                "pipeProgram": "sh",
-                "pipeArgs": ["-c", "docker exec -i dev-env ${debuggerCommand}"],
+                "pipeProgram": "docker",
+                "pipeArgs": ["exec", "-i", "dev-env"],
                 "debuggerPath": "/vsdbg/vsdbg",
                 "pipeCwd": "${workspaceFolder}"
             },
@@ -54,6 +41,13 @@
                 "/app/backend": "${workspaceFolder}"
             },
             "justMyCode": false
+        }
+    ],
+    "inputs": [
+        {
+            "id": "dotnetProcessId",
+            "type": "promptString",
+            "description": "PID do processo dotnet dentro do container dev-env"
         }
     ]
 }

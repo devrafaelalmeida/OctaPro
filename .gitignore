@@ -493,4 +493,5 @@ Logs/
 .Logs/
 
 tenants.db
+tenants.db-*
 *.db

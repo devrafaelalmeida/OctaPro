@@ -11,22 +11,22 @@ namespace OctaPro.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
-                name: "corporation_id",
+                name: "empresa_id",
                 table: "users",
                 newName: "corporation_id");
 
             migrationBuilder.RenameColumn(
-                name: "corporation_id",
+                name: "empresa_id",
                 table: "settlement",
                 newName: "corporation_id");
 
             migrationBuilder.RenameColumn(
-                name: "corporation_id",
+                name: "empresa_id",
                 table: "legal_fees",
                 newName: "corporation_id");
 
             migrationBuilder.RenameColumn(
-                name: "corporation_id",
+                name: "empresa_id",
                 table: "judicial_processes",
                 newName: "corporation_id");
         }
@@ -37,22 +37,22 @@ namespace OctaPro.Migrations
             migrationBuilder.RenameColumn(
                 name: "corporation_id",
                 table: "users",
-                newName: "corporation_id");
+                newName: "empresa_id");
 
             migrationBuilder.RenameColumn(
                 name: "corporation_id",
                 table: "settlement",
-                newName: "corporation_id");
+                newName: "empresa_id");
 
             migrationBuilder.RenameColumn(
                 name: "corporation_id",
                 table: "legal_fees",
-                newName: "corporation_id");
+                newName: "empresa_id");
 
             migrationBuilder.RenameColumn(
                 name: "corporation_id",
                 table: "judicial_processes",
-                newName: "corporation_id");
+                newName: "empresa_id");
         }
     }
 }

@@ -176,7 +176,7 @@ public class UserService : IUserService
 
     private async Task<IdentityResult> ValidateRoleAsync(int roleId)
     {
-        if (!Enum.IsDefined(typeof(UserRole), roleId))
+        if (!Enum.IsDefined(typeof(UserRole), roleId) || roleId == 1)
         {
             return IdentityResult.Failed(new IdentityError
             {

@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
         return Ok();
     }
     
-    [Authorize(Roles = "Admin,Manager,Common")]
+    [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
