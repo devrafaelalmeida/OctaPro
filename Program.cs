@@ -7,6 +7,7 @@ using OctaPro.Authorization;
 using OctaPro.Commands;
 using OctaPro.Configurations;
 using OctaPro.Data;
+using OctaPro.Data.Seeds;
 using OctaPro.Extensions;
 using OctaPro.Middlewares;
 using OctaPro.Models;
@@ -108,7 +109,7 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 // ─── Build ──────────────────────────────────────────────────
 var app = builder.Build();
 
-if (args.Contains("migrate-tenants"))
+if (args.Contains("run-all-migrates"))
 {
     using var scope = app.Services.CreateScope();
     await TenantMigrationRunner.RunAsync(scope.ServiceProvider);
@@ -126,6 +127,27 @@ if (args.Length > 0 && args[0] == "list-migrations")
     var domain = args[1];
     using var scope = app.Services.CreateScope();
     await TenantMigrationInspector.ListPendingAsync(scope.ServiceProvider, domain);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "run-seeds")
+{
+    var domain = args.Length > 1 ? args[1] : null;
+    await SeedRunner.RunAsync(app.Services, domain);
+    return;
+}
+
+if (args.Length > 0 && args[0] == "run-seed")
+{
+    if (args.Length < 2)
+    {
+        Console.WriteLine("Uso: dotnet run -- run-seed <alias seed> [domain-do-tenant]");
+        return;
+    }
+
+    var seedName = args[1];
+    var domain = args.Length > 2 ? args[2] : null;
+    await SeedRunner.RunOneAsync(app.Services, seedName, domain);
     return;
 }
 
