@@ -23,8 +23,13 @@ public static class AdminUserSeeder
 
         foreach (var tenant in tenants)
         {
-            await SeedTenantAsync(rootServices, tenant);
+            await RunTenantAsync(rootServices, tenant);
         }
+    }
+
+    public static async Task RunTenantAsync(IServiceProvider rootServices, TenantDto tenant)
+    {
+        await SeedTenantAsync(rootServices, tenant);
     }
 
     private static async Task<List<TenantDto>> GetTenantsAsync(IServiceProvider rootServices, string? domain)

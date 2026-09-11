@@ -1,3 +1,5 @@
 {
-    "dotnet.defaultSolution": "OctaPro.sln"
+    "dotnet.defaultSolution": "OctaPro.sln",
+    "editor.glyphMargin": true,
+    "debug.allowBreakpointsEverywhere": true
 }

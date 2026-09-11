@@ -71,6 +71,7 @@ public static class SeedRunner
         await RoleSeeder.SeedRolesAsync(roleManager);
         await PermissionSeeder.SeedPermissionsAsync(context);
         await StatusReferenceSeeder.SeedStatusReferencesAsync(context);
+        await AdminUserSeeder.RunTenantAsync(rootServices, tenant);
 
         Console.WriteLine($"[SeedRunner] Seeds finalizadas no tenant '{tenant.ConnectionName}'.");
         Console.WriteLine("=======================================================================================");

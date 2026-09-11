@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OctaPro.Data;
+using OctaPro.DTO.Response;
 using OctaPro.Repositories;
 using OctaPro.Tenancy;
 
@@ -7,11 +8,19 @@ namespace OctaPro.Commands;
 
 public static class TenantMigrationRunner
 {
-    public static async Task RunAsync(IServiceProvider services)
+    public static async Task RunAsync(IServiceProvider services, string? domain = null)
     {
         var tenantRepository = services.GetRequiredService<ITenantRepository>();
-        var tenants = (await tenantRepository.GetAllAsync()).ToList();
+        var tenants = await GetTenantsAsync(tenantRepository, domain);
+
+        if (tenants.Count == 0)
+        {
+            Console.WriteLine($"[MigrationRunner] Tenant com domain '{domain}' não encontrado ou inativo.");
+            return;
+        }
+
         var successCount = 0;
+        var skippedCount = 0;
         var failureCount = 0;
 
         Console.WriteLine($"[MigrationRunner] {tenants.Count} tenant(s) encontrado(s).");
@@ -28,6 +37,17 @@ public static class TenantMigrationRunner
                     .Options;
 
                 await using var context = new AppDbContext(options);
+                var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
+
+                if (pendingMigrations.Count == 0)
+                {
+                    skippedCount++;
+                    Console.WriteLine($"[MigrationRunner] Tenant '{tenant.ConnectionName}': nenhuma migration pendente.");
+                    Console.WriteLine("=======================================================================================");
+                    continue;
+                }
+
+                Console.WriteLine($"[MigrationRunner] Tenant '{tenant.ConnectionName}': {pendingMigrations.Count} migration(ns) pendente(s).");
                 await context.Database.MigrateAsync();
 
                 successCount++;
@@ -44,6 +64,15 @@ public static class TenantMigrationRunner
             }
         }
 
-        Console.WriteLine($"[MigrationRunner] Finalizado. Sucesso: {successCount}. Falhas: {failureCount}.");
+        Console.WriteLine($"[MigrationRunner] Finalizado. Aplicados: {successCount}. Sem pendências: {skippedCount}. Falhas: {failureCount}.");
+    }
+
+    private static async Task<List<TenantDto>> GetTenantsAsync(ITenantRepository tenantRepository, string? domain)
+    {
+        if (string.IsNullOrWhiteSpace(domain))
+            return (await tenantRepository.GetAllAsync()).ToList();
+
+        var tenant = await tenantRepository.GetByDomainAsync(domain);
+        return tenant == null ? [] : [tenant];
     }
 }

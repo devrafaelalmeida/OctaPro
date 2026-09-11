@@ -1,10 +1,15 @@
 {
-    "name": "OctaPro dev-env",
+    "name": "OctaPro Backend",
     "dockerComposeFile": "../docker-compose.yml",
-    "service": "dev-env",
+    "service": "backend",
     "workspaceFolder": "/app/backend",
     "shutdownAction": "none",
     "overrideCommand": false,
+    "runServices": [
+        "octapro-pg-container",
+        "backend",
+        "frontend"
+    ],
     "customizations": {
         "vscode": {
             "settings": {

@@ -109,10 +109,11 @@ builder.Services.AddScoped<ITenantContext, TenantContext>();
 // ─── Build ──────────────────────────────────────────────────
 var app = builder.Build();
 
-if (args.Contains("run-all-migrates"))
+if (args.Length > 0 && args[0] == "run-all-migrates")
 {
+    var domain = args.Length > 1 ? args[1] : null;
     using var scope = app.Services.CreateScope();
-    await TenantMigrationRunner.RunAsync(scope.ServiceProvider);
+    await TenantMigrationRunner.RunAsync(scope.ServiceProvider, domain);
     return;
 }
 

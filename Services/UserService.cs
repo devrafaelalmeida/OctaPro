@@ -159,7 +159,8 @@ public class UserService : IUserService
 
     private static void ApplyRequest(User user, UserRequest request)
     {
-        user.UserName = request.UserName;
+        user.FullName = request.FullName;
+        user.UserName = request.Email;
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
         user.CorporationId = request.CorporationId;
@@ -176,7 +177,7 @@ public class UserService : IUserService
 
     private async Task<IdentityResult> ValidateRoleAsync(int roleId)
     {
-        if (!Enum.IsDefined(typeof(UserRole), roleId) || roleId == 1)
+        if (!Enum.IsDefined(typeof(UserRole), roleId))
         {
             return IdentityResult.Failed(new IdentityError
             {
@@ -222,7 +223,7 @@ public class UserService : IUserService
         return new UserResponse
         {
             IdPublic = user.IdPublic,
-            UserName = user.UserName,
+            FullName = user.UserName,
             Email = user.Email,
             CPF = user.CPF,
             BirthDate = user.BirthDate,

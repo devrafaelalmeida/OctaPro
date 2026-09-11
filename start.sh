@@ -11,10 +11,9 @@ echo ">>> Restaurando pacotes .NET..."
 cd /app/backend
 dotnet restore
 
-echo ">>> Iniciando .NET com hot reload..."
-dotnet watch run \
-    --urls "http://0.0.0.0:5091" \
-    --no-hot-reload=false &
+echo ">>> Iniciando .NET..."
+dotnet run \
+    --urls "http://0.0.0.0:5091" &
 BACKEND_PID=$!
 
 # Encerra ambos se um deles morrer

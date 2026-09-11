@@ -12,6 +12,9 @@ namespace OctaPro.Models;
 [Table("users")]
 public partial class User : IdentityUser<long>
 {
+
+    public string? FullName { get; set; }
+
     [MaxLength(2048)]
     [Column("profile_photo_path")]
     public string? ProfilePhotoPath { get; set; }

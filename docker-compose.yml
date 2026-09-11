@@ -4,9 +4,9 @@ services:
     container_name: octapro-pg-container
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: octapro_db
+      POSTGRES_USER: ${CONTAINER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${CONTAINER_PROSTGRES_PASSWORD}
+      POSTGRES_DB: ${CONTAINER_POSTGRES_DB}
     ports:
       - "5437:5432"   # ← nova porta pra não conflitar com o Postgres existente
     volumes:
@@ -16,24 +16,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - octapro-dev
 
-  dev-env:
-    build: ./
-    container_name: dev-env
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: octapro-backend
     working_dir: /app/backend
     depends_on:
       octapro-pg-container:
         condition: service_healthy   # aguarda o Postgres estar pronto de verdade
     ports:
       - "5091:5091"   # .NET API
-      - "5173:5173"   # React dev server
     volumes:
       - "./:/app/backend"
-      - "../octa-pro-frontend/:/app/frontend"
       - nuget_cache:/root/.nuget/packages   # cache dos pacotes NuGet entre rebuilds
-      - node_modules_cache:/app/frontend/node_modules
+      - backend_bin:/app/backend/bin
+      - backend_obj:/app/backend/obj
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:5091
+    command: /app/backend/backend/start-debug.sh
     # ↓ Obrigatório para o vsdbg funcionar (ptrace para attach de processo)
     cap_add:
       - SYS_PTRACE
@@ -41,8 +46,37 @@ services:
       - seccomp:unconfined
     tty: true
     stdin_open: true
+    networks:
+      octapro-dev:
+        aliases:
+          - backend
+
+  frontend:
+    build:
+      context: ../octa-pro-frontend
+      dockerfile: ../OctaPro/frontend/Dockerfile
+    container_name: octapro-frontend
+    working_dir: /app/frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"   # React dev server
+    volumes:
+      - "../octa-pro-frontend:/app/frontend"
+      - frontend_node_modules:/app/frontend/node_modules
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://localhost:5091
+      INTERNAL_API_BASE_URL: http://backend:5091
+    networks:
+      - octapro-dev
 
 volumes:
   postgres_data:
   nuget_cache:
-  node_modules_cache:
+  backend_bin:
+  backend_obj:
+  frontend_node_modules:
+
+networks:
+  octapro-dev:
