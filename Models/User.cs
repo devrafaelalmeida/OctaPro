@@ -66,6 +66,9 @@ public partial class User : IdentityUser<long>
     [Column("neithborhood")]
     public string? Neithborhood { get; set; }
 
+    public string? Responsability { get; set; }
+
+
     public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
 
     public virtual ICollection<JudicialProcessUser> JudicialProcessUsers { get; set; } = new List<JudicialProcessUser>();

@@ -8,7 +8,7 @@ public class UserResponse
     public DateOnly? BirthDate { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
-    public long CorporationId { get; set; }
+    public Guid CorporationIdPublic { get; set; }
     public long? RoleId { get; set; }
     public string? CEP { get; set; }
     public string? UF { get; set; }

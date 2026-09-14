@@ -37,6 +37,10 @@ public class UserService : IUserService
                 _context.UserRoles
                     .Where(userRole => userRole.UserId == u.Id)
                     .Select(userRole => (long?)userRole.RoleId)
+                    .FirstOrDefault(),
+                _context.Corporations
+                    .Where(c => c.Id == u.CorporationId)
+                    .Select(c => c.IdPublic)
                     .FirstOrDefault()))
             .ToListAsync();
     }
@@ -54,6 +58,10 @@ public class UserService : IUserService
                 _context.UserRoles
                     .Where(userRole => userRole.UserId == u.Id)
                     .Select(userRole => (long?)userRole.RoleId)
+                    .FirstOrDefault(),
+                _context.Corporations
+                    .Where(c => c.Id == u.CorporationId)
+                    .Select(c => c.IdPublic)
                     .FirstOrDefault()))
             .FirstOrDefaultAsync();
     }
@@ -97,7 +105,12 @@ public class UserService : IUserService
 
         await _context.SaveChangesAsync();
 
-        return (result, ToResponse(user, request.RoleId));
+        var corporationIdPublic = await _context.Corporations
+            .Where(c => c.Id == user.CorporationId)
+            .Select(c => c.IdPublic)
+            .FirstOrDefaultAsync();
+
+        return (result, ToResponse(user, request.RoleId, corporationIdPublic));
     }
 
     public async Task<(IdentityResult Result, UserResponse? User)> UpdateAsync(Guid idPublic, UserRequest request)
@@ -129,7 +142,12 @@ public class UserService : IUserService
 
         await SyncUserRoleAsync(user.Id, request.RoleId);
 
-        return (result, ToResponse(user, request.RoleId));
+        var corporationIdPublic = await _context.Corporations
+            .Where(c => c.Id == user.CorporationId)
+            .Select(c => c.IdPublic)
+            .FirstOrDefaultAsync();
+
+        return (result, ToResponse(user, request.RoleId, corporationIdPublic));
     }
 
     public async Task<bool> DeleteAsync(Guid idPublic)
@@ -218,17 +236,17 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
     }
 
-    private static UserResponse ToResponse(User user, long? roleId)
+    private static UserResponse ToResponse(User user, long? roleId, Guid corporationIdPublic)
     {
         return new UserResponse
         {
             IdPublic = user.IdPublic,
-            FullName = user.UserName,
+            FullName = user.FullName,
             Email = user.Email,
             CPF = user.CPF,
             BirthDate = user.BirthDate,
             PhoneNumber = user.PhoneNumber,
-            CorporationId = user.CorporationId,
+            CorporationIdPublic = corporationIdPublic,
             RoleId = roleId,
             CEP = user.CEP,
             UF = user.UF,

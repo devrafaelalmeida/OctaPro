@@ -23,7 +23,7 @@ public class CorporationService : ICorporationService
         var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
         return await _context.Corporations
-            .Where(c => c.Id == currentUser.CorporationId)
+            // .Where(c => c.Id == currentUser.CorporationId)
             .OrderBy(c => c.TradeName)
             .Select(c => ToResponse(c))
             .ToListAsync();
