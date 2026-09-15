@@ -6,6 +6,7 @@ using OctaPro.DTO.Response;
 using OctaPro.Enums;
 using OctaPro.Models;
 using OctaPro.Services.interfaces;
+using OctaPro.Utils;
 
 namespace OctaPro.Services;
 
@@ -70,12 +71,13 @@ public class UserService : IUserService
     {
         var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        if (request.CorporationId != currentUser.CorporationId)
-            return (CorporationMismatchResult(), null);
+        var corporation = await _context.Corporations
+            .Where(c => c.IdPublic == request.CorporationId)
+            // .Select(c => c.IdPublic)
+            .FirstOrDefaultAsync();
 
-        var roleValidation = await ValidateRoleAsync(request.RoleId);
-        if (!roleValidation.Succeeded)
-            return (roleValidation, null);
+        if (corporation == null)
+            return (CorporationMismatchResult(), null);
 
         if (string.IsNullOrWhiteSpace(request.Password))
         {
@@ -87,7 +89,7 @@ public class UserService : IUserService
         }
 
         var user = new User();
-        ApplyRequest(user, request);
+        ApplyRequest(user, request, corporation.Id);
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         user.IdPublic = Guid.NewGuid();
@@ -97,32 +99,30 @@ public class UserService : IUserService
         if (!result.Succeeded)
             return (result, null);
 
+        var roleId = (long)UserRole.COMMON;
+
         _context.UserRoles.Add(new IdentityUserRole<long>
         {
             UserId = user.Id,
-            RoleId = request.RoleId
+            RoleId = roleId
         });
 
         await _context.SaveChangesAsync();
 
-        var corporationIdPublic = await _context.Corporations
-            .Where(c => c.Id == user.CorporationId)
-            .Select(c => c.IdPublic)
-            .FirstOrDefaultAsync();
-
-        return (result, ToResponse(user, request.RoleId, corporationIdPublic));
+        return (result, ToResponse(user, roleId, corporation.IdPublic));
     }
 
     public async Task<(IdentityResult Result, UserResponse? User)> UpdateAsync(Guid idPublic, UserRequest request)
     {
         var currentUser = await _currentUserService.GetRequiredCurrentUserAsync();
 
-        if (request.CorporationId != currentUser.CorporationId)
-            return (CorporationMismatchResult(), null);
+        var corporation = await _context.Corporations
+            .Where(c => c.IdPublic == request.CorporationId)
+            // .Select(c => c.IdPublic)
+            .FirstOrDefaultAsync();
 
-        var roleValidation = await ValidateRoleAsync(request.RoleId);
-        if (!roleValidation.Succeeded)
-            return (roleValidation, null);
+        if (corporation == null)
+            return (CorporationMismatchResult(), null);
 
         var user = await _userManager.Users
             .FirstOrDefaultAsync(u =>
@@ -132,7 +132,7 @@ public class UserService : IUserService
         if (user == null)
             return (IdentityResult.Success, null);
 
-        ApplyRequest(user, request);
+        ApplyRequest(user, request, corporation.Id);
         user.UpdatedAt = DateTime.UtcNow;
 
         var result = await _userManager.UpdateAsync(user);
@@ -140,14 +140,17 @@ public class UserService : IUserService
         if (!result.Succeeded)
             return (result, null);
 
-        await SyncUserRoleAsync(user.Id, request.RoleId);
+        var roleId = await _context.UserRoles
+            .Where(userRole => userRole.UserId == user.Id)
+            .Select(userRole => (long?)userRole.RoleId)
+            .FirstOrDefaultAsync();
 
         var corporationIdPublic = await _context.Corporations
             .Where(c => c.Id == user.CorporationId)
             .Select(c => c.IdPublic)
             .FirstOrDefaultAsync();
 
-        return (result, ToResponse(user, request.RoleId, corporationIdPublic));
+        return (result, ToResponse(user, roleId, corporationIdPublic));
     }
 
     public async Task<bool> DeleteAsync(Guid idPublic)
@@ -175,13 +178,13 @@ public class UserService : IUserService
         });
     }
 
-    private static void ApplyRequest(User user, UserRequest request)
+    private static void ApplyRequest(User user, UserRequest request, long corporationId)
     {
         user.FullName = request.FullName;
         user.UserName = request.Email;
         user.Email = request.Email;
         user.PhoneNumber = request.PhoneNumber;
-        user.CorporationId = request.CorporationId;
+        user.CorporationId = corporationId;
         user.CPF = request.CPF;
         user.BirthDate = request.BirthDate;
         user.CEP = request.CEP;
@@ -191,49 +194,7 @@ public class UserService : IUserService
         user.NumberHouse = request.NumberHouse;
         user.Complement = request.Complement;
         user.Neithborhood = request.Neithborhood;
-    }
-
-    private async Task<IdentityResult> ValidateRoleAsync(int roleId)
-    {
-        if (!Enum.IsDefined(typeof(UserRole), roleId))
-        {
-            return IdentityResult.Failed(new IdentityError
-            {
-                Code = "InvalidRoleId",
-                Description = "RoleId inválido."
-            });
-        }
-
-        var roleExists = await _context.Roles.AnyAsync(role => role.Id == roleId);
-
-        if (!roleExists)
-        {
-            return IdentityResult.Failed(new IdentityError
-            {
-                Code = "RoleNotFound",
-                Description = "Role não encontrada."
-            });
-        }
-
-        return IdentityResult.Success;
-    }
-
-    private async Task SyncUserRoleAsync(long userId, int roleId)
-    {
-        var currentRoles = await _context.UserRoles
-            .Where(userRole => userRole.UserId == userId)
-            .ToListAsync();
-
-        if (currentRoles.Count > 0)
-            _context.UserRoles.RemoveRange(currentRoles);
-
-        _context.UserRoles.Add(new IdentityUserRole<long>
-        {
-            UserId = userId,
-            RoleId = roleId
-        });
-
-        await _context.SaveChangesAsync();
+        user.Responsability = request.Responsability;
     }
 
     private static UserResponse ToResponse(User user, long? roleId, Guid corporationIdPublic)
@@ -256,7 +217,8 @@ public class UserService : IUserService
             Complement = user.Complement,
             Neithborhood = user.Neithborhood,
             CreatedAt = user.CreatedAt,
-            UpdatedAt = user.UpdatedAt
+            UpdatedAt = user.UpdatedAt,
+            Responsability = user.Responsability
         };
     }
 }

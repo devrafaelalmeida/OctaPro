@@ -64,6 +64,7 @@ namespace OctaPro.Services
                 return null;
 
             return await _userManager.Users
+                .Include(u => u.Corporation)
                 .FirstOrDefaultAsync(u => u.IdPublic == idPublic);
         }
     }

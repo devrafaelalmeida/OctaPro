@@ -68,6 +68,8 @@ public partial class User : IdentityUser<long>
 
     public string? Responsability { get; set; }
 
+    [ForeignKey(nameof(CorporationId))]
+    public virtual Corporation Corporation { get; set; } = null!;
 
     public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
 

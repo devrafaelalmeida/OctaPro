@@ -47,9 +47,11 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
+            user.FullName,
             user.UserName,
             user.Email,
             user.IdPublic,
+            CompanyName = user.Corporation?.TradeName,
         });
     }
 }

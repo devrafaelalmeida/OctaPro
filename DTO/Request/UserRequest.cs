@@ -28,10 +28,7 @@ public class UserRequest
     public string? Password { get; set; }
 
     [Required]
-    public long CorporationId { get; set; }
-
-    [Required]
-    public int RoleId { get; set; }
+    public Guid CorporationId { get; set; }
 
     [Required]
     [MaxLength(8)]
@@ -59,4 +56,7 @@ public class UserRequest
     [Required]
     [MaxLength(255)]
     public string Neithborhood { get; set; } = string.Empty;
+
+    [MaxLength(255)]
+    public string Responsability { get; set; } = string.Empty;
 }
